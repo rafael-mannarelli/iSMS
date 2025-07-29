@@ -954,6 +954,13 @@ mainhandles = checkdynamicsCallback(handles);
 
 function Tools_ClassifyFromList_Callback(hObject, eventdata, handles)
 % Classify traces listed in a text file into a group
+
+% When created programmatically, this callback may be invoked with only two
+% arguments.  Retrieve the handles structure if it was not supplied.
+if nargin < 3 || isempty(handles)
+    handles = guidata(hObject);
+end
+
 handles = turnoffFRETpairwindowtoggles(handles); % Turn off integration ROIs
 mainhandles = getmainhandles(handles); % Get main window handles
 if isempty(mainhandles)
