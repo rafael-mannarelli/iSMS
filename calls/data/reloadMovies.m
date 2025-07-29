@@ -142,7 +142,13 @@ for i = 1:length(files)
             try delete(hWaitbar), end
             return
         end
-        
+
+        % If dimensions are swapped, rotate to match stored orientation
+        if ~isequal(size(imageDataTot(:,:,1)),avgimgSz(1:2)) && ...
+                isequal(size(imageDataTot(:,:,1)),avgimgSz([2 1]))
+            imageDataTot = permute(imageDataTot,[2 1 3]);
+        end
+
         % Check dimensions
         if ~isequal(size(imageDataTot(:,:,1)),avgimgSz(1:2))
             
