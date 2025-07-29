@@ -108,6 +108,10 @@ if isfield(handles,'ToolsMenu') && ishandle(handles.ToolsMenu)
     uimenu(handles.ToolsMenu, 'Label','Classify traces from list...',...
         'Callback',@Tools_ClassifyFromList_Callback, 'Tag','Tools_ClassifyFromList');
 end
+if isfield(handles,'SortMenu') && ishandle(handles.SortMenu)
+    handles.Sort_DeepFRET = uimenu(handles.SortMenu, 'Label','DeepFRET confidence',...
+        'Callback',@Sort_DeepFRET_Callback, 'Tag','Sort_DeepFRET');
+end
 
 % Save current properties of cursor and graphics handles
 handles.functionHandles.cursorPointer = get(handles.figure1, 'Pointer');
@@ -332,6 +336,24 @@ mainhandles = sortpairsCallback(handles.figure1, 7);
 
 function Sort_maxAA_Callback(hObject, eventdata, handles)
 mainhandles = sortpairsCallback(handles.figure1, 8);
+
+function Sort_DeepFRET_Callback(hObject, eventdata, handles)
+mainhandles = getmainhandles(handles);
+if isempty(mainhandles)
+    return
+end
+
+prompt = {'Minimum frames before bleach','Minimum confidence'};
+def = {num2str(mainhandles.settings.deepFRET.minFrames), ...
+       num2str(mainhandles.settings.deepFRET.minConfidence)};
+answer = inputdlg(prompt,'DeepFRET sort',1,def);
+if isempty(answer)
+    return
+end
+mainhandles.settings.deepFRET.minFrames = str2double(answer{1});
+mainhandles.settings.deepFRET.minConfidence = str2double(answer{2});
+updatemainhandles(mainhandles);
+mainhandles = sortpairsCallback(handles.figure1, 9);
 
 function Sort_Update_Callback(hObject, eventdata, handles)
 % Get mainhandles structure

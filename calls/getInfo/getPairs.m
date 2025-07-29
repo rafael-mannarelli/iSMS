@@ -330,6 +330,41 @@ if strcmpi(choice,'Listed')
         % Sort according to intensity
         temp = flipud( sortrows(temp) );
         selectedPairs = temp(:,2:3);
+
+    elseif sortpairsChoice==9
+        % Sort according to DeepFRET confidence
+
+        selectedPairs = getPairs(mainhandle,'all');
+        if isempty(selectedPairs)
+            return
+        end
+
+        temp = zeros(size(selectedPairs,1),3);
+        temp(:,2:3) = selectedPairs;
+        for i = 1:size(selectedPairs,1)
+            file = selectedPairs(i,1);
+            pair = selectedPairs(i,2);
+            conf = mainhandles.data(file).FRETpairs(pair).deepFRETconfidence;
+            if isempty(conf)
+                conf = 0;
+            end
+            % Filter based on minimal frames before bleach if specified
+            minFrames = mainhandles.settings.deepFRET.minFrames;
+            bFrame = mainhandles.data(file).FRETpairs(pair).deepFRETbleachFrame;
+            if isempty(bFrame)
+                framesOk = 1;
+            else
+                framesOk = bFrame >= minFrames;
+            end
+            if framesOk && conf >= mainhandles.settings.deepFRET.minConfidence
+                temp(i,1) = conf;
+            else
+                temp(i,1) = -inf;
+            end
+        end
+        temp = flipud(sortrows(temp));
+        temp(temp(:,1)==-inf,:) = [];
+        selectedPairs = temp(:,2:3);
         
     else
         % If only pairs in selected movie file is selected
