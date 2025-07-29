@@ -145,18 +145,27 @@ vpos = vpos-2*textheight-verspace;
 setpixelposition(fpHandles.PairCoordinatesTextbox, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
+% DeepFRET confidence label
+confDelta = 0.114 * figpos(3);
+catDelta = 0.037 * figpos(3);
+setpixelposition(fpHandles.text28,[imX-4-confDelta vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.confidenceValueTextBox,[imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.aggregatedValueTextBox,[imX-4 vpos imW+8 textheight])
+setpixelposition(fpHandles.aggregatedTextBox,[imX-4+catDelta vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.staticValueTextBox,[imX-4 vpos imW+8 textheight])
+setpixelposition(fpHandles.staticTextBox,[imX-4+catDelta vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.dynamicValueTextBox,[imX-4 vpos imW+8 textheight])
+setpixelposition(fpHandles.dynamicTextBox,[imX-4+catDelta vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.noisyValueTextBox,[imX-4 vpos imW+8 textheight])
+setpixelposition(fpHandles.noisyTextBox,[imX-4+catDelta vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.scrambledValueTextBox,[imX-4 vpos imW+8 textheight])
+setpixelposition(fpHandles.scrambledTextBox,[imX-4+catDelta vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
 
