@@ -114,7 +114,8 @@ if isfield(handles,'ToolsMenu') && ishandle(handles.ToolsMenu)
     uimenu(handles.ToolsMenu, 'Label','Classify traces from list...',...
         'Callback',@Tools_ClassifyFromList_Callback, 'Tag','Tools_ClassifyFromList');
     uimenu(handles.ToolsMenu, 'Label','Run DeepFRET classification...',...
-        'Callback',@Tools_DeepFRET_Callback, 'Tag','Tools_DeepFRET');
+        'Callback',@(src,evt)Tools_DeepFRET_Callback(src,evt,guidata(src)), ...
+        'Tag','Tools_DeepFRET');
 end
 
 % Save current properties of cursor and graphics handles
