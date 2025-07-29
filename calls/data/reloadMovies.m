@@ -270,6 +270,10 @@ try delete(hWaitbar), end % Delete the waitbar
             
             % Load data depending on filetype:
             [imageData, back] = loadfiles(mainhandles, filepath);
+            imageData = flipdata(imageData, filename);
+            if ~isempty(back)
+                back = flipdata(back, filename);
+            end
             
             if isempty(imageData)
                 continue
@@ -399,6 +403,35 @@ try delete(hWaitbar), end % Delete the waitbar
             imageDataTot = imageDataTot(:,:,cutmergedframes);
         end
         
+    end
+
+    function imageData = flipdata(imageData, filename)
+        % Flip and rotate data that is not in sif format
+        if isempty(imageData)
+            return
+        end
+
+        if ~strcmpi(filename(end-2:end),'sif') && size(imageData,4)>1
+
+            % Frames in 4th dimension
+            for frame = 1:size(imageData,4)
+                for ch = 1:size(imageData,3)
+                    imageData(:,:,ch,frame) = flipud(imageData(:,:,ch,frame));
+                end
+            end
+            imageData = permute(imageData,[2 1 4 3]);
+
+        elseif ~strcmpi(filename(end-2:end),'sif') && size(imageData,4)==1
+
+            % Frames in 3rd dimension
+            for frame = 1:size(imageData,3)
+                imageData(:,:,frame) = flipud(imageData(:,:,frame));
+            end
+            imageData = permute(imageData,[2 1 3 4]);
+
+        elseif size(imageData,4)>1
+            imageData = permute(imageData,[1 2 4 3]);
+        end
     end
 
 end
