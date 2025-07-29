@@ -142,7 +142,13 @@ for i = 1:length(files)
             try delete(hWaitbar), end
             return
         end
-        
+
+        % If dimensions are swapped, rotate to match stored orientation
+        if ~isequal(size(imageDataTot(:,:,1)),avgimgSz(1:2)) && ...
+                isequal(size(imageDataTot(:,:,1)),avgimgSz([2 1]))
+            imageDataTot = permute(imageDataTot,[2 1 3]);
+        end
+
         % Check dimensions
         if ~isequal(size(imageDataTot(:,:,1)),avgimgSz(1:2))
             
@@ -210,7 +216,8 @@ try delete(hWaitbar), end % Delete the waitbar
         imageDataTot = [];
         cutmerged = 0;
         
-        for f = 1:size(filepaths,1)
+        nFilepaths = numel(filepaths);
+        for f = 1:nFilepaths
             
             % Load all files (>1 if merged movie)
             filepath = filepaths{f};
@@ -227,7 +234,7 @@ try delete(hWaitbar), end % Delete the waitbar
             if forceDlg || exist(filepath)~=2
                 
                 % Open dialog
-                if size(filepaths,1)>1
+                if nFilepaths>1
                     [filename, dir, chose] = uigetfile3(mainhandles,'data',fileformats,sprintf('Locate file %i of: %s',f,mainhandles.data(file).name),'','off');
                 else
                     [filename, dir, chose] = uigetfile3(mainhandles,'data',fileformats,sprintf('Locate: %s',mainhandles.data(file).name),'','off');
@@ -238,7 +245,7 @@ try delete(hWaitbar), end % Delete the waitbar
                 filepath = fullfile(dir,filename);
                 
                 % Use selected directory for all files?
-                if (length(files)>1 || size(filepaths,1)>1) && asknewdir
+                if (length(files)>1 || nFilepaths>1) && asknewdir
                     
                     % Question dialog
                     choice = myquestdlg('Load data from this directory for all selected files?', 'Path',...
@@ -263,6 +270,10 @@ try delete(hWaitbar), end % Delete the waitbar
             
             % Load data depending on filetype:
             [imageData, back] = loadfiles(mainhandles, filepath);
+            imageData = flipdata(imageData, filename);
+            if ~isempty(back)
+                back = flipdata(back, filename);
+            end
             
             if isempty(imageData)
                 continue
@@ -294,7 +305,7 @@ try delete(hWaitbar), end % Delete the waitbar
             if ~isempty(mainhandles.data(file).cameraBackground)
                 
                 cameraBackgrounds = mainhandles.data(file).cameraBackground;
-                if isequal(size(cameraBackgrounds,1),size(filepaths,1))
+                if isequal(size(cameraBackgrounds,1),nFilepaths)
                     
                     % The same number of backgrounds as filepaths must be registered
                     cameraBackground = cameraBackgrounds{f,1}; % Registered camera background of file f in movie i
@@ -318,7 +329,7 @@ try delete(hWaitbar), end % Delete the waitbar
             if ~isempty(mainhandles.data(file).geoTransformations)
                 
                 geoTransformations = mainhandles.data(file).geoTransformations;
-                if isequal(size(geoTransformations,2),size(filepaths,1))
+                if isequal(size(geoTransformations,2),nFilepaths)
                     
                     % The same number of geoTransformations as filepaths must be registered
                     Ts = geoTransformations{1,f}; % Registered geometry transformations of file f in movie i
@@ -392,6 +403,35 @@ try delete(hWaitbar), end % Delete the waitbar
             imageDataTot = imageDataTot(:,:,cutmergedframes);
         end
         
+    end
+
+    function imageData = flipdata(imageData, filename)
+        % Flip and rotate data that is not in sif format
+        if isempty(imageData)
+            return
+        end
+
+        if ~strcmpi(filename(end-2:end),'sif') && size(imageData,4)>1
+
+            % Frames in 4th dimension
+            for frame = 1:size(imageData,4)
+                for ch = 1:size(imageData,3)
+                    imageData(:,:,ch,frame) = flipud(imageData(:,:,ch,frame));
+                end
+            end
+            imageData = permute(imageData,[2 1 4 3]);
+
+        elseif ~strcmpi(filename(end-2:end),'sif') && size(imageData,4)==1
+
+            % Frames in 3rd dimension
+            for frame = 1:size(imageData,3)
+                imageData(:,:,frame) = flipud(imageData(:,:,frame));
+            end
+            imageData = permute(imageData,[2 1 3 4]);
+
+        elseif size(imageData,4)>1
+            imageData = permute(imageData,[1 2 4 3]);
+        end
     end
 
 end
