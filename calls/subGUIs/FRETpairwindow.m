@@ -116,11 +116,9 @@ tags = {'confidenceValueTextBox','aggregatedValueTextBox','dynamicValueTextBox',
         'noisyValueTextBox','scrambledValueTextBox','staticValueTextBox'};
 for k = 1:numel(tags)
     htmp = findobj(handles.figure1,'Tag',tags{k});
-    if isempty(htmp)
-        htmp = uicontrol('Parent',handles.figure1,'Style','text',...
-            'String','-','HorizontalAlignment','left','Tag',tags{k});
+    if ~isempty(htmp)
+        handles.(tags{k}) = htmp;
     end
-    handles.(tags{k}) = htmp;
 end
 
 % Save current properties of cursor and graphics handles
@@ -992,7 +990,9 @@ end
 
 listfile = fullfile(path,file);
 mainhandles = classifyTracesFromList(mainhandles.figure1, listfile);
+% Update GUI with classification results
 updateFRETpairlist(mainhandles.figure1, handles.figure1);
+updateFRETpairplots(mainhandles.figure1, handles.figure1);
 
 function Tools_DeepFRET_Callback(hObject, eventdata, handles)
 % Classify selected traces using DeepFRET
