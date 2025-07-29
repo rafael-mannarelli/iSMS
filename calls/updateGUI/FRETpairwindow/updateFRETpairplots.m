@@ -85,6 +85,7 @@ if (isempty(mainhandles.data)) || (isempty(selectedPairs)) || (size(selectedPair
     cla(DDtraceAxes),  cla(ADtraceAxes),  cla(AAtraceAxes),  cla(StraceAxes),
     cla(PRtraceAxes),  cla(DDimageAxes),  cla(ADimageAxes),  cla(AAimageAxes)
     set(FRETpairwindowHandles.paircoordinates,'String','(-, -)')
+    set(FRETpairwindowHandles.DeepFRETConfidence,'String','-')
     
     FRETpairwindowHandles.DframeSliderHandle = [];
     FRETpairwindowHandles.AframeSliderHandle = [];
@@ -412,6 +413,15 @@ Dxy = mainhandles.data(file).FRETpairs(pair).Dxy; % Position of the donor within
 Axy = mainhandles.data(file).FRETpairs(pair).Axy; % Position of the acceptor within the A ROI [x y]
 Exy = (Dxy+Axy)/2;
 set(FRETpairwindowHandles.paircoordinates,'String',sprintf('(%0.1f, %0.1f)',Exy(1),Exy(2)))
+
+% Update DeepFRET confidence
+if isfield(mainhandles.data(file).FRETpairs(pair),'DeepFRET_confidence') && ...
+        ~isempty(mainhandles.data(file).FRETpairs(pair).DeepFRET_confidence)
+    conf = 100*mainhandles.data(file).FRETpairs(pair).DeepFRET_confidence;
+    set(FRETpairwindowHandles.DeepFRETConfidence,'String',sprintf('%0.1f %%',conf));
+else
+    set(FRETpairwindowHandles.DeepFRETConfidence,'String','-');
+end
 
 %% Nested
 

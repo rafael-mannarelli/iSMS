@@ -134,9 +134,6 @@ if editW>=1
     setpixelposition(fpHandles.DleakEditbox, [imX+textW2+horspace vpos editW editheight])
 end
 
-vpos = vpos+editheight+verspace;
-setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
-
 % Pair coordinates
 if ~isempty(mainhandles) && mainhandles.settings.excitation.alex
     vpos = axspaceB+2*axH+axspaceV;
@@ -148,6 +145,12 @@ vpos = vpos-2*textheight-verspace;
 setpixelposition(fpHandles.PairCoordinatesTextbox, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
+vpos = vpos+textheight+verspace;
+setpixelposition(fpHandles.DeepFRETConfText, [imX-4 vpos imW+8 textheight])
+vpos = vpos+textheight+verspace;
+setpixelposition(fpHandles.DeepFRETConfidence, [imX-4 vpos imW+8 textheight])
+vpos = vpos+textheight+verspace;
+setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
 
 % Images
 vpos = axspaceB+2*axH+2*axspaceV;

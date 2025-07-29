@@ -11,8 +11,9 @@ function mainhandles = classifyWithDeepFRET(mainhandle, selectedPairs)
 %   selectedPairs - [file pair] array. If empty all selected pairs are used
 %
 % The DeepFRET model files 'FRET_2C_keras_model.h5' and
-% 'FRET_3C_keras_model.h5' must be located in the 'resources' folder of
-% the iSMS installation.
+% 'FRET_3C_keras_model.h5' must be located in the folder
+%    calls/deepFRET/model/
+% Copy them from the DeepFRET distribution before running.
 
 mainhandles = [];
 if nargin < 1 || isempty(mainhandle) || ~ishandle(mainhandle)
@@ -34,9 +35,9 @@ end
 persistent net2C net3C
 if isempty(net2C) || isempty(net3C)
     thisdir = fileparts(mfilename('fullpath'));
-    rootdir = fileparts(fileparts(thisdir));
-    model2CPath = fullfile(rootdir, 'resources', 'FRET_2C_keras_model.h5');
-    model3CPath = fullfile(rootdir, 'resources', 'FRET_3C_keras_model.h5');
+    modeldir = fullfile(thisdir,'model');
+    model2CPath = fullfile(modeldir, 'FRET_2C_keras_model.h5');
+    model3CPath = fullfile(modeldir, 'FRET_3C_keras_model.h5');
     if exist(model2CPath, 'file')
         net2C = importKerasNetwork(model2CPath, 'OutputLayerType','classification');
     else
