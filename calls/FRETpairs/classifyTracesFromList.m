@@ -91,7 +91,11 @@ if isempty(selectedPairs)
 end
 
 %% Determine group index
-idx = find(strcmpi({mainhandles.groups.name},groupName),1);
+if ~isfield(mainhandles,'groups') || ~isstruct(mainhandles.groups) || isempty(mainhandles.groups)
+    idx = [];
+else
+    idx = find(strcmpi({mainhandles.groups.name},groupName),1);
+end
 if isempty(idx)
     mainhandles = createNewGroup(mainhandles, selectedPairs, groupName, [], 0);
 else
