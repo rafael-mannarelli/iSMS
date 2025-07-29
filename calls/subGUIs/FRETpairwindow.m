@@ -107,6 +107,8 @@ turnoffDeployed(mainhandles, handles.figure1);
 if isfield(handles,'ToolsMenu') && ishandle(handles.ToolsMenu)
     uimenu(handles.ToolsMenu, 'Label','Classify traces from list...',...
         'Callback',@Tools_ClassifyFromList_Callback, 'Tag','Tools_ClassifyFromList');
+    uimenu(handles.ToolsMenu, 'Label','Classify traces with DeepFRET...',...
+        'Callback',@Tools_DeepFRET_Callback, 'Tag','Tools_DeepFRET');
 end
 
 % Save current properties of cursor and graphics handles
@@ -975,6 +977,27 @@ end
 
 listfile = fullfile(path,file);
 mainhandles = classifyTracesFromList(mainhandles.figure1, listfile);
+
+function Tools_DeepFRET_Callback(hObject, eventdata, handles)
+% Classify selected traces using DeepFRET
+
+if nargin < 3 || isempty(handles)
+    handles = guidata(hObject);
+end
+
+handles = turnoffFRETpairwindowtoggles(handles);
+mainhandles = getmainhandles(handles);
+if isempty(mainhandles)
+    return
+end
+
+selectedPairs = selectionDlg(mainhandles,'DeepFRET classification',...
+    'Select traces to classify: ','pair');
+if isempty(selectedPairs)
+    return
+end
+
+mainhandles = classifyWithDeepFRET(mainhandles.figure1, selectedPairs);
 
 function GroupingsMenu_Callback(hObject, ~, handles) %% The Groups menu
 handles = turnoffFRETpairwindowtoggles(handles); % Turn of integration ROIs
