@@ -91,16 +91,18 @@ end
 
 %% Sort molecules choice
 
-set([FRETpairwindowHandles.Sort_File...
+sortHandles = [FRETpairwindowHandles.Sort_File...
     FRETpairwindowHandles.Sort_Group...
     FRETpairwindowHandles.Sort_avgE...
     FRETpairwindowHandles.Sort_avgS...
     FRETpairwindowHandles.Sort_maxDAsum...
     FRETpairwindowHandles.Sort_maxDD...
     FRETpairwindowHandles.Sort_maxAD...
-    FRETpairwindowHandles.Sort_maxAA...
-    FRETpairwindowHandles.Sort_DeepFRET...
-    ], 'Checked','off')
+    FRETpairwindowHandles.Sort_maxAA];
+if isfield(FRETpairwindowHandles,'Sort_DeepFRET') && ishandle(FRETpairwindowHandles.Sort_DeepFRET)
+    sortHandles = [sortHandles FRETpairwindowHandles.Sort_DeepFRET];
+end
+set(sortHandles, 'Checked','off')
 if mainhandles.settings.FRETpairplots.sortpairs==1
     set(FRETpairwindowHandles.Sort_File, 'Checked','on')
     
@@ -125,7 +127,9 @@ elseif mainhandles.settings.FRETpairplots.sortpairs==7
 elseif mainhandles.settings.FRETpairplots.sortpairs==8
     set(FRETpairwindowHandles.Sort_maxAA, 'Checked','on')
 elseif mainhandles.settings.FRETpairplots.sortpairs==9
-    set(FRETpairwindowHandles.Sort_DeepFRET, 'Checked','on')
+    if isfield(FRETpairwindowHandles,'Sort_DeepFRET') && ishandle(FRETpairwindowHandles.Sort_DeepFRET)
+        set(FRETpairwindowHandles.Sort_DeepFRET, 'Checked','on')
+    end
 end
 
 if mainhandles.settings.bin.open

@@ -88,6 +88,7 @@ mainhandles = updateALEX(mainhandles,handles.figure1); % This may update
 if isfield(handles,'SortMenu') && ishandle(handles.SortMenu)
     handles.Sort_DeepFRET = uimenu(handles.SortMenu, 'Label','DeepFRET confidence',...
         'Callback',@Sort_DeepFRET_Callback, 'Tag','Sort_DeepFRET');
+    guidata(handles.figure1,handles); % ensure other functions see new field
 end
 
 % Update menu checkmarks etc.
