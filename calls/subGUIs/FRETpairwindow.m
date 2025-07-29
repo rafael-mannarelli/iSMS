@@ -103,6 +103,12 @@ mainhandles = updatePublic(mainhandles,handles.figure1);
 % Turn off some things if its a deployed version
 turnoffDeployed(mainhandles, handles.figure1);
 
+% Add classification tool for FRET traces from exported list
+if isfield(handles,'ToolsMenu') && ishandle(handles.ToolsMenu)
+    uimenu(handles.ToolsMenu, 'Label','Classify traces from list...',...
+        'Callback',@Tools_ClassifyFromList_Callback, 'Tag','Tools_ClassifyFromList');
+end
+
 % Save current properties of cursor and graphics handles
 handles.functionHandles.cursorPointer = get(handles.figure1, 'Pointer');
 
@@ -945,6 +951,30 @@ mainhandles = checkbackgroundCallback(handles);
 
 function Tools_CheckDynamics_Callback(hObject, eventdata, handles)
 mainhandles = checkdynamicsCallback(handles);
+
+function Tools_ClassifyFromList_Callback(hObject, eventdata, handles)
+% Classify traces listed in a text file into a group
+
+% When created programmatically, this callback may be invoked with only two
+% arguments.  Retrieve the handles structure if it was not supplied.
+if nargin < 3 || isempty(handles)
+    handles = guidata(hObject);
+end
+
+handles = turnoffFRETpairwindowtoggles(handles); % Turn off integration ROIs
+mainhandles = getmainhandles(handles); % Get main window handles
+if isempty(mainhandles)
+    return
+end
+
+[file, path, chose] = uigetfile3(mainhandles,'results','*.txt', ...
+    'Select exported trace list','name','off');
+if chose==0
+    return
+end
+
+listfile = fullfile(path,file);
+mainhandles = classifyTracesFromList(mainhandles.figure1, listfile);
 
 function GroupingsMenu_Callback(hObject, ~, handles) %% The Groups menu
 handles = turnoffFRETpairwindowtoggles(handles); % Turn of integration ROIs
