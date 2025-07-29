@@ -1,0 +1,455 @@
+function mainhandles = apertureplotCallback(fpwHandles)
+
+%% Initialize
+
+% Get handles structure
+mainhandles = getmainhandles(fpwHandles);
+
+for w = 1:length(mainhandles.figures)
+    try close(mainhandles.figures{w}), end
+end
+
+% Selected pairs
+selectedPairs = getPairs(fpwHandles.main,'selected');
+if isempty(selectedPairs)
+    return
+elseif size(selectedPairs,1)>1
+    mymsgbox('Please select a single pair only.')
+    return
+end
+
+% Selection
+file = selectedPairs(1,1);
+pair = selectedPairs(1,2);
+
+% If data is missing
+if isempty(mainhandles.data(file).DD_ROImovie)
+    mymsgbox('Please reload the raw data in order to continue with the requested action.')
+    return
+end
+
+% Save to restore afterwards
+pair_before = mainhandles.data(file).FRETpairs(pair);
+settings_before = mainhandles.settings;
+
+%% Input settings
+prompt = {'Min. aperture width (pixels): ' 'minAperture';...
+    'Max. aperture width (pixels): ' 'maxAperture';...
+    'Background spacer (pixels): ' 'backspace';...
+    'Background aperture width: ' 'backwidth';...
+    'Background type: ' 'backtype'};
+formats = prepareformats();
+formats(2,1).type = 'edit';
+formats(2,1).format = 'integer';
+formats(3,1).type = 'edit';
+formats(3,1).format = 'integer';
+formats(4,1).type = 'edit';
+formats(4,1).format = 'integer';
+formats(5,1).type = 'edit';
+formats(5,1).format = 'integer';
+formats(6,1).type = 'list';
+formats(6,1).style = 'popupmenu';
+formats(6,1).items = {'Mean';'Median';'LSP'};
+
+defans.minAperture = mainhandles.settings.multisignature.minAperture;
+defans.maxAperture = mainhandles.settings.multisignature.maxAperture;
+defans.backspace = mainhandles.settings.multisignature.backspace;
+defans.backwidth = mainhandles.settings.multisignature.backwidth;
+defans.backtype = mainhandles.settings.multisignature.backtype;
+
+[answer,cancelled] = myinputsdlg(prompt,'Multi-aperture signature plot',formats,defans);
+if cancelled
+    return
+end
+
+% Settings
+minA = answer.minAperture;
+if minA<1
+    minA = 1;
+end
+maxA = answer.maxAperture;
+if maxA<1
+    maxA = 1;
+end
+aperture_space = answer.backspace;
+if aperture_space<0
+    aperture_space = 1;
+end
+aperture_backwidth = answer.backwidth;
+if aperture_backwidth<0
+    aperture_backwidth = 1;
+end
+if minA>maxA
+    t = minA;
+    minA = maxA;
+    maxA = t;
+end
+backtype = answer.backtype;
+
+if minA==1 && maxA>2
+    aperture_widths = [1 3:maxA];
+else
+    aperture_widths = minA:maxA;
+end
+
+%% Calculate
+
+% Change settings temporarily
+% prct = 62;
+mainhandles.settings.integration.type = 1; % Aperture
+% mainhandles.settings.background.prctile = prct;
+mainhandles.settings.background.bleachchoice = 0; % Dont subtract background after bleach
+mainhandles.settings.background.blinkchoice = 0;
+mainhandles.settings.FRETpairplots.exPixels = 1;
+
+% Waitbar
+hWaitbar = mywaitbar(0,'Calculating...');
+
+% Tell calculateIntensityTraces to store all calculated traces in appdata
+setappdata(0,'keepalltraces',1)
+
+    mainhandles.settings.background.backtype = backtype;
+    
+    % Initialize data
+    data = struct(...
+        'wh', [],...
+        'DDtrace',[],...
+        'ADtrace',[],...
+        'AAtrace',[],...
+        'DDback',[],...
+        'ADback',[],...
+        'AAback',[]);
+    data(:) = [];
+    
+    for i = 1:length(aperture_widths)
+        w = aperture_widths(i);
+        
+        % Change temporarily
+        mainhandles.data(file).FRETpairs(pair).Dwh = [w w];
+        mainhandles.data(file).FRETpairs(pair).Awh = [w w];
+        mainhandles.data(file).FRETpairs(pair).DintMask = [];
+        mainhandles.data(file).FRETpairs(pair).AintMask = [];
+        mainhandles.data(file).FRETpairs(pair).backspace = aperture_space;
+        mainhandles.data(file).FRETpairs(pair).backwidth = aperture_backwidth;
+        updatemainhandles(mainhandles)
+        
+        % Calcualte traces
+        mainhandles = calculateIntensityTraces(mainhandles.figure1,[file pair],0);
+        
+        % Store this trace
+        data(end+1).wh = w;
+        data(end).DDtrace = mainhandles.data(file).FRETpairs(pair).DDtrace;
+        data(end).ADtrace = mainhandles.data(file).FRETpairs(pair).ADtrace;
+        data(end).AAtrace = mainhandles.data(file).FRETpairs(pair).AAtrace;
+        
+        data(end).DDback = mainhandles.data(file).FRETpairs(pair).DDback;
+        data(end).ADback = mainhandles.data(file).FRETpairs(pair).ADback;
+        data(end).AAback = mainhandles.data(file).FRETpairs(pair).AAback;
+        
+        data(end).Etrace = mainhandles.data(file).FRETpairs(pair).Etrace;
+        
+        data(end).Dbleach = mainhandles.data(file).FRETpairs(pair).DbleachingTime;
+        data(end).Ableach = mainhandles.data(file).FRETpairs(pair).AbleachingTime;
+        
+        data(end).DDraw = data(end).DDtrace+data(end).DDback;
+        data(end).ADraw = data(end).ADtrace+data(end).ADback;
+        data(end).AAraw = data(end).AAtrace+data(end).AAback;
+        
+        data(end).DDscr = data(end).DDtrace./data(end).DDraw;
+        data(end).ADscr = data(end).ADtrace./data(end).ADraw;
+        data(end).AAscr = data(end).AAtrace./data(end).AAraw;
+        
+        data(end).DintPixels = length(find(mainhandles.data(file).FRETpairs(pair).DintMask));
+        data(end).AintPixels = length(find(mainhandles.data(file).FRETpairs(pair).AintMask));
+        
+        data(end).DDbackVal = data(end).DDback/data(end).DintPixels;
+        data(end).ADbackVal = data(end).ADback/data(end).AintPixels;
+        data(end).AAbackVal = data(end).AAback/data(end).AintPixels;
+        
+        data(end).DintMask = mainhandles.data(file).FRETpairs(pair).DintMask;
+        data(end).DbackMask = mainhandles.data(file).FRETpairs(pair).DbackMask;
+        
+        data(end).allIsDD = getappdata(0,'allIsDD');
+        data(end).allbacksDD = getappdata(0,'allbacksDD');
+        data(end).allIsAD = getappdata(0,'allIsAD');
+        data(end).allbacksAD = getappdata(0,'allbacksAD');
+        data(end).allIsAA = getappdata(0,'allIsAA');
+        data(end).allbacksAA = getappdata(0,'allbacksAA');
+        
+        % Waitbar
+        waitbar(i/length(aperture_widths),hWaitbar);
+    end
+
+% Clean up
+try rmappdata(0,'allIsDD'), end
+try rmappdata(0,'allbacksDD'), end
+try rmappdata(0,'allIsAD'), end
+try rmappdata(0,'allbacksAD'), end
+try rmappdata(0,'allIsAA'), end
+try rmappdata(0,'allbacksAA'), end
+try rmappdata(0,'keepalltraces'), end
+
+% Delete waitbar
+try delete(hWaitbar), end
+
+% Images
+mainhandles = calculateMoleculeImages(mainhandles.figure1,[file pair]);
+DD_avgimage = mainhandles.data(file).FRETpairs(pair).DD_avgimage;
+AD_avgimage = mainhandles.data(file).FRETpairs(pair).AD_avgimage;
+AA_avgimage = mainhandles.data(file).FRETpairs(pair).AA_avgimage;
+
+%% Restore and plot
+
+% Restore original pair
+mainhandles.data(file).FRETpairs(pair) = pair_before;
+mainhandles.settings = settings_before;
+updatemainhandles(mainhandles);
+
+% Round-off difference used to correct image centers later:
+limcorrect = mainhandles.data(file).FRETpairs(pair).limcorrect;
+
+% If D or A is at the edge of the ROI make image smaller
+edges = mainhandles.data(file).FRETpairs(pair).edges;
+
+% Plot
+figXPos = 1;
+mainhandles.figures{end+1} = plottheAp('DD','green',DD_avgimage,limcorrect(1:2),edges(1,:));
+mainhandles.figures{end+1} = plottheAp('AD','red',AD_avgimage,limcorrect(3:4),edges(2,:));
+if mainhandles.settings.excitation.alex
+    mainhandles.figures{end+1} = plottheAp('AA','red',AA_avgimage,limcorrect(3:4),edges(2,:));
+end    
+updatemainhandles(mainhandles)
+
+% Set positions
+% set(mainhandles.figures{end-2},'Units','Normalized','Position',[0 0 0.33 1])
+% set(mainhandles.figures{end-1},'Units','Normalized','Position',[0.33 0 0.33 1])
+% set(mainhandles.figures{end},'Units','Normalized','Position',[00.66 0 0.33 1])
+% 
+%% Nested
+
+    function fh = plottheAp(str,col,img, limcorrect, edge)
+        
+        % Calculate signatures
+        [I, B] = calcSignature();
+        
+        % Make separate figure plot
+        % Initialize ax
+        fh = figure;
+        updatelogo(fh)
+        ax1 = subplot(3,1,1);
+        ax2 = subplot(3,1,2);
+        ax3 = subplot(3,1,3);
+        hold(ax2,'on')
+        hold(ax3,'on')
+        figXPos = figXPos+220;
+        set(fh,'Name',sprintf('Pair (%i,%i): %s',file,pair,str), 'NumberTitle','off')
+        
+        % Image
+        imageMolecule(ax1);
+        
+        % Plot signatures
+        ax2 = plotSignature(ax2, I, 1, 'Corrected intensity', [],[]);%I(1)
+        ax3 = plotSignature(ax3, B, 1, 'Background', 'auto', 'Aperture width /pixels');%B(1)
+        %         ax4 = plotSignature(subplot(4,1,4), scrs_before, 1, 'S/N', 'auto', 'Aperture width');
+        
+        % Set axes positions
+%         if ii==3
+            setAxPos();
+%         end
+        
+        %% Nested
+        
+        function imageMolecule(ax)%mainhandles, ax, img, limcorrect, edge)
+%             ax = gca;
+            
+            % Check contrast
+            if isempty(mainhandles.data(file).FRETpairs(pair).contrastslider) % Set a default contrast slider value, if it's empty
+                mainhandles.data(file).FRETpairs(pair).contrastslider = 0;
+                updatemainhandles(mainhandles)
+            end
+            contrastMax = 1-mainhandles.data(file).FRETpairs(pair).contrastslider;
+            
+            % Set Contrast
+            maxValue = (max(img(:))-min(img(:)))*contrastMax + min(img(:));
+            img(img>maxValue) = maxValue;
+            
+            % Make logarithmic scale plot
+            if mainhandles.settings.FRETpairplots.logImage
+%                 img = real(log10(img));
+            end
+            
+            % Aperture movie
+            %
+            %         fh = figure;
+            %         wh = aperture_widths(1);
+            %         imageMolecule();
+            %         for j = 1:length(aperture_widths)
+            %             wh = aperture_widths(j);
+            %             imageMolecule();
+            % %             pause(0.5)
+            %             waitfor(msgbox('continue'))
+            %         end
+            
+            % Plot image
+            hImg = imagesc(img,'Parent',ax); % Show image
+            updateUIcontextMenus(mainhandles.figure1,hImg);
+            colormap(jet)
+            
+            % Set axis properties
+            axis(ax,'image') % Equalizes x and y limits
+            set(ax,'YDir','normal') % Flips y-axis so that it goes from low to high numbers, going up
+            if ~strcmp(get(ax,'XTickLabel'),'') % Remove axes labels
+                set(ax, 'XTickLabel','')
+                set(ax, 'YTickLabel','')
+            end
+            
+            % Make sure moleucule position is in the exact center of the image
+            
+            % Check current limits
+            xlims = get(ax,'xlim'); % Get current x-limits
+            ylims = get(ax,'ylim'); % Get current y-limits
+            xlims = xlims+limcorrect(1)+[1 -1]; % Correct center of image due to pixel round-off. +[1 -1] to avoid white edges
+            ylims = ylims+limcorrect(2)+[1 -1]+1;
+            
+            % If molecule is located at an edge set additional limits
+            if sum(edge)>0
+                xlims = [xlims(1)-edge(1) xlims(2)+edge(2)];
+                ylims = [ylims(1)-edge(3) ylims(2)+edge(4)];
+            end
+            
+            % Set new limits
+            xlims = sort(xlims);
+            ylims = sort(ylims);
+            xlim(ax,xlims) % Set axis limits so that Dxy is in the exact center of the image
+            ylim(ax,ylims)
+            
+            return
+            % Filled circle
+            xc = mean(xlims);
+            yc = mean(ylims);
+            r = wh/2;
+            x = r*sin(-pi:0.05*pi:pi) + xc;
+            y = r*cos(-pi:0.05*pi:pi) + yc;
+            c = [0.8 0.8 0.8];
+            hold on
+            %             fill(x, y, c, 'FaceAlpha', 0.4)
+            hold off
+            
+            % Filled ring
+            %             r2 = wh/2+1;
+            %             x2 = r2*sin(-pi:0.05*pi:pi) + xc;
+            %             y2 = r2*cos(-pi:0.05*pi:pi) + yc;
+            %             c2 = [0.8 0.8 0.8];
+            %
+            %             hold on
+            %             fill(x, y, c, 'FaceAlpha', 0.4)
+            %             hold off
+            
+            % Intensity ring
+            viscircles([mean(xlims) mean(ylims)],wh(1)/2,'EdgeColor','white','LineWidth',0.5);
+            
+            % Background ring
+            %             viscircles([mean(xlims) mean(ylims)],wh(1)/2+1,'EdgeColor',[0.7 0.7 0.7],'LineWidth',2,'DrawBackgroundCircle',false);
+        end
+        
+        function fh = histogramPlot()
+            fh = [];
+            %             if j==5 && strcmpi(str,'DD')
+            %                 fh = figure(50)
+            %                 hold off
+            %                 hist(allbackvector,100)
+            %                 hold on
+            %                 line([mean(allbackvector) mean(allbackvector)],get(gca,'ylim'),'color','black','linewidth',3)
+            %                 line([prctile(allbackvector,prctile) prctile(allbackvector,prctile)],get(gca,'ylim'),'color','green','linewidth',1.5)
+            %                 line([median(allbackvector) median(allbackvector)],get(gca,'ylim'),'color','red','linewidth',3)
+            %                 xlim([0 100])
+            %                 set(gca,'fontsize',15)
+            %                 xlabel('Pixel value','fontsize',15)
+            %                 ylabel('Number of pixels','fontsize',15)
+            %             end
+        end
+        
+        function [I B] = calcSignature()
+            %         scrs_before = zeros(length(aperture_widths),1);
+            %         scrs_after = [];
+            I = zeros(length(aperture_widths),1);
+            B = zeros(length(aperture_widths),1);
+            %
+            %         stdbacks = zeros(length(aperture_widths),1);
+            %         prcbacks = zeros(length(aperture_widths),1);
+            %
+            for j = 1:length(aperture_widths)
+                bidx = data(j).([str(1) 'bleach']);
+                
+                % Background-corrected intensity
+                if ~isempty(bidx) && bidx<length(data(j).([str 'trace']))
+                    I(j) = sum(data(j).([str 'trace'])(1:bidx-1));
+                else
+                    I(j) = sum(data(j).([str 'trace'])(:));
+                end
+                
+                % Avg. background
+                if ~isempty(bidx) && bidx<length(data(j).([str 'trace']))
+                    B(j) = sum(data(j).([str 'backVal'])(1:bidx-1));
+                else
+                    B(j) = sum(data(j).([str 'backVal'])(:));
+                end
+                
+                
+            end
+        end
+        
+        function ax = plotSignature(ax,y,normY,ylab,xtick,xlab)
+            
+%             if ii==1
+%                 hold(ax,'off')
+%             else
+%                 hold(ax,'on')
+%             end
+%             
+            % Plot
+            y = y/normY;%sums_before/sums_before(1);
+%             cols = {'blue','green','red'};
+            plot(ax,aperture_widths,y,'color',col)
+            
+            % Y ax
+            %             ylim([min(y(:)) max(y(:))])
+            ylabel(ax,ylab)
+            
+            % X ax
+            xlim(ax,[min(aperture_widths(:)) max(aperture_widths(:))])
+            if isempty(xtick)
+                set(ax,'xtick',xtick)
+            end
+            if ~isempty(xlab)
+                xlabel(ax,xlab)
+            end
+            
+            box(ax,'on')
+        end
+        
+        function setAxPos()
+            setpixelposition(fh,[figXPos 50 220 768])
+            
+            corr = 24;
+            axp1 = getpixelposition(ax1);
+            axp2 = getpixelposition(ax2);
+            setpixelposition(ax2,[axp2(1)+corr axp1(2)-axp2(4)+corr axp1(3:4)-corr])
+            
+            axp2 = getpixelposition(ax2);
+            axp3 = getpixelposition(ax3);
+            setpixelposition(ax3,[axp2(1) axp2(2)-axp3(4)+corr axp2(3:4)])
+            
+            %             axp3 = getpixelposition(ax3);
+            %             axp4 = getpixelposition(ax4);
+            %             setpixelposition(ax4,[axp3(1) axp3(2)-axp4(4) axp3(3:4)])
+            
+            axp1 = getpixelposition(ax1);
+            setpixelposition(ax1,[axp2(1) axp1(2) axp1(3:4)-corr])
+            
+            updateUIcontextMenus(mainhandles.figure1,[ax1 ax2 ax3])% ax4])
+        end
+        
+    end
+
+end
