@@ -84,6 +84,12 @@ handles.functionHandles.PairListbox_Callback = @PairListbox_Callback;
 % Set GUI properties depending on excitation scheme
 mainhandles = updateALEX(mainhandles,handles.figure1); % This may update
 
+% Add DeepFRET sort menu before updating menu checkmarks
+if isfield(handles,'SortMenu') && ishandle(handles.SortMenu)
+    handles.Sort_DeepFRET = uimenu(handles.SortMenu, 'Label','DeepFRET confidence',...
+        'Callback',@Sort_DeepFRET_Callback, 'Tag','Sort_DeepFRET');
+end
+
 % Update menu checkmarks etc.
 updateFRETpairwindowGUImenus(mainhandles,handles)
 
@@ -107,10 +113,6 @@ turnoffDeployed(mainhandles, handles.figure1);
 if isfield(handles,'ToolsMenu') && ishandle(handles.ToolsMenu)
     uimenu(handles.ToolsMenu, 'Label','Classify traces from list...',...
         'Callback',@Tools_ClassifyFromList_Callback, 'Tag','Tools_ClassifyFromList');
-end
-if isfield(handles,'SortMenu') && ishandle(handles.SortMenu)
-    handles.Sort_DeepFRET = uimenu(handles.SortMenu, 'Label','DeepFRET confidence',...
-        'Callback',@Sort_DeepFRET_Callback, 'Tag','Sort_DeepFRET');
 end
 
 % Save current properties of cursor and graphics handles
