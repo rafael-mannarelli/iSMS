@@ -113,6 +113,8 @@ turnoffDeployed(mainhandles, handles.figure1);
 if isfield(handles,'ToolsMenu') && ishandle(handles.ToolsMenu)
     uimenu(handles.ToolsMenu, 'Label','Classify traces from list...',...
         'Callback',@Tools_ClassifyFromList_Callback, 'Tag','Tools_ClassifyFromList');
+    uimenu(handles.ToolsMenu, 'Label','Run DeepFRET classification...',...
+        'Callback',@Tools_DeepFRET_Callback, 'Tag','Tools_DeepFRET');
 end
 
 % Save current properties of cursor and graphics handles
@@ -975,6 +977,20 @@ mainhandles = checkbackgroundCallback(handles);
 
 function Tools_CheckDynamics_Callback(hObject, eventdata, handles)
 mainhandles = checkdynamicsCallback(handles);
+
+function Tools_DeepFRET_Callback(hObject, eventdata, handles)
+handles = turnoffFRETpairwindowtoggles(handles); % Turn off integration ROIs
+mainhandles = getmainhandles(handles);
+if isempty(mainhandles)
+    return
+end
+try
+    mainhandles = classifyDeepFRET(mainhandles.figure1);
+catch ME
+    errordlg(ME.message,'DeepFRET classification','modal');
+    return
+end
+updateFRETpairlist(mainhandles.figure1, handles.figure1)
 
 function Tools_ClassifyFromList_Callback(hObject, eventdata, handles)
 % Classify traces listed in a text file into a group
