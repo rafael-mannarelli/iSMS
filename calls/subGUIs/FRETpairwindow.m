@@ -979,18 +979,27 @@ function Tools_CheckDynamics_Callback(hObject, eventdata, handles)
 mainhandles = checkdynamicsCallback(handles);
 
 function Tools_DeepFRET_Callback(hObject, eventdata, handles)
-handles = turnoffFRETpairwindowtoggles(handles); % Turn off integration ROIs
-mainhandles = getmainhandles(handles);
-if isempty(mainhandles)
-    return
-end
-try
-    mainhandles = classifyDeepFRET(mainhandles.figure1);
-catch ME
-    errordlg(ME.message,'DeepFRET classification','modal');
-    return
-end
-updateFRETpairlist(mainhandles.figure1, handles.figure1)
+    % Run DeepFRET classification for all loaded FRET pairs
+
+    % When created programmatically this callback might be invoked with
+    % only two input arguments. Retrieve the handles structure if it was
+    % not supplied.
+    if nargin < 3 || isempty(handles)
+        handles = guidata(hObject);
+    end
+
+    handles = turnoffFRETpairwindowtoggles(handles); % Turn off integration ROIs
+    mainhandles = getmainhandles(handles);
+    if isempty(mainhandles)
+        return
+    end
+    try
+        mainhandles = classifyDeepFRET(mainhandles.figure1);
+    catch ME
+        errordlg(ME.message,'DeepFRET classification','modal');
+        return
+    end
+    updateFRETpairlist(mainhandles.figure1, handles.figure1)
 
 function Tools_ClassifyFromList_Callback(hObject, eventdata, handles)
 % Classify traces listed in a text file into a group
