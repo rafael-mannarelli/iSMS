@@ -146,9 +146,17 @@ setpixelposition(fpHandles.PairCoordinatesTextbox, [imX-4 vpos imW+8 textheight]
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.DeepFRETConfText, [imX-4 vpos imW+8 textheight])
+setpixelposition(fpHandles.confidenceValueTextBox,[imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.DeepFRETConfidence, [imX-4 vpos imW+8 textheight])
+setpixelposition(fpHandles.aggregatedValueTextBox,[imX-4 vpos imW+8 textheight])
+vpos = vpos+textheight+verspace;
+setpixelposition(fpHandles.staticValueTextBox,[imX-4 vpos imW+8 textheight])
+vpos = vpos+textheight+verspace;
+setpixelposition(fpHandles.dynamicValueTextBox,[imX-4 vpos imW+8 textheight])
+vpos = vpos+textheight+verspace;
+setpixelposition(fpHandles.noisyValueTextBox,[imX-4 vpos imW+8 textheight])
+vpos = vpos+textheight+verspace;
+setpixelposition(fpHandles.scrambledValueTextBox,[imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
 

@@ -4,7 +4,8 @@ function mainhandles = classifyWithDeepFRET(mainhandle, selectedPairs)
 % mainhandles = CLASSIFYWITHDEEPFRET(mainhandle, selectedPairs) loads the
 % pre-trained DeepFRET models and classifies the selected FRET pairs.
 % The resulting class label and confidence are stored in each
-% FRETpair under the fields 'DeepFRET_class' and 'DeepFRET_confidence'.
+% FRETpair under the fields 'DeepFRET_class', 'DeepFRET_confidence', and
+% 'DeepFRET_probs'.
 %
 % Input arguments:
 %   mainhandle    - handle to the main iSMS window
@@ -76,9 +77,16 @@ for k = 1:size(selectedPairs,1)
     [~, Dleakage, Adirect] = getGamma(mainhandles,[file pair]);
 
     try
-        [cls, conf] = classify_trace(intensities, Dleakage, Adirect, net2C, net3C);
+        [cls, conf, prob] = classify_trace(intensities, Dleakage, Adirect, net2C, net3C);
         mainhandles.data(file).FRETpairs(pair).DeepFRET_class = cls;
         mainhandles.data(file).FRETpairs(pair).DeepFRET_confidence = conf;
+        probs.aggregated = prob(2);
+        probs.noisy = prob(3);
+        probs.scrambled = prob(4);
+        probs.static = prob(5);
+        probs.dynamic = sum(prob(6:9));
+        probs.confidence = conf;
+        mainhandles.data(file).FRETpairs(pair).DeepFRET_probs = probs;
     catch ME
         warning('DeepFRET classification failed for pair (%i,%i): %s',file,pair,ME.message);
     end
@@ -147,7 +155,7 @@ function [p, confidence, bleachFrame] = seq_probabilities(yi, skip_threshold, mi
     confidence = sum(p(5:end));
 end
 
-function [traceClass, confidence] = classify_trace(intensities, alpha, delta, net2C, net3C)
+function [traceClass, confidence, probs] = classify_trace(intensities, alpha, delta, net2C, net3C)
     [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, alpha, delta);
     xi = [F_DA; I_DD; I_AA]';
 
@@ -167,4 +175,5 @@ function [traceClass, confidence] = classify_trace(intensities, alpha, delta, ne
     classes = {"bleached","aggregated","noisy","scrambled","1-state", ...
                "2-state","3-state","4-state","5-state"};
     traceClass = classes{idx};
+    probs = p;
 end
