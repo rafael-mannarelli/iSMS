@@ -27,11 +27,17 @@ function plotDeepFRETConfidence(handles)
 %     The GNU General Public License is found at
 %     <http://www.gnu.org/licenses/gpl.html>.
 
+% Obtain the mainhandles structure. If the input argument is missing or
+% invalid fall back to the globally stored main handle.
 if nargin < 1 || isempty(handles)
-    handles = getappdata(0,'mainhandle');
+    mainhandles = guidata(getappdata(0,'mainhandle'));
+else
+    mainhandles = getmainhandles(handles);
+    if isempty(mainhandles)
+        mainhandles = guidata(getappdata(0,'mainhandle'));
+    end
 end
 
-mainhandles = getmainhandles(handles);
 if isempty(mainhandles) || ~isfield(mainhandles,'data') || isempty(mainhandles.data)
     errordlg('No data available to plot DeepFRET confidence.', 'DeepFRET');
     return
@@ -44,11 +50,14 @@ for f = 1:numel(mainhandles.data)
     for p = 1:numel(pairs)
         if isfield(pairs(p),'DeepFRET_confidence')
             conf(end+1) = pairs(p).DeepFRET_confidence * 100; %#ok<AGROW>
-        else
-            conf(end+1) = NaN; %#ok<AGROW>
+            labels{end+1} = sprintf('%d-%d', f, p); %#ok<AGROW>
         end
-        labels{end+1} = sprintf('%d-%d', f, p); %#ok<AGROW>
     end
+end
+
+if isempty(conf)
+    errordlg('No DeepFRET classification results available.', 'DeepFRET');
+    return
 end
 
 figure('Name','DeepFRET confidence per trace');
