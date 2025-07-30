@@ -169,9 +169,20 @@ function [traceClass, confidence, probs] = classify_trace(intensities, alpha, de
     if hasRed
         model = net3C;
         xi = xi([2 3 1], :);
+        expectedDims = 3;
     else
         model = net2C;
         xi = xi([2 3], :);
+        expectedDims = 2;
+    end
+
+    % Debug: visualize if the input feature dimension is incorrect
+    if size(xi,1) ~= expectedDims
+        figure('Name','DeepFRET input dimension mismatch');
+        plot(xi');
+        xlabel('Frame');
+        ylabel('Intensity');
+        title(sprintf('DeepFRET input dimension %d, expected %d', size(xi,1), expectedDims));
     end
 
     xi = sample_max_normalize(xi);
