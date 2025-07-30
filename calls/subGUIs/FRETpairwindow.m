@@ -1013,6 +1013,7 @@ if isempty(selectedPairs)
 end
 
 mainhandles = classifyWithDeepFRET(mainhandles.figure1, selectedPairs);
+plotDeepFRETConfidence(mainhandles.figure1);
 
 function GroupingsMenu_Callback(hObject, ~, handles) %% The Groups menu
 handles = turnoffFRETpairwindowtoggles(handles); % Turn of integration ROIs
