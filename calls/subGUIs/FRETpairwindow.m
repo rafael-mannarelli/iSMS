@@ -1000,6 +1000,7 @@ mainhandles = classifyTracesFromList(mainhandles.figure1, listfile);
 % Update GUI with classification results
 updateFRETpairlist(mainhandles.figure1, handles.figure1);
 updateFRETpairplots(mainhandles.figure1, handles.figure1);
+FRETpairwindowResizeFcn(guidata(handles.figure1));
 
 function Tools_DeepFRET_Callback(hObject, eventdata, handles)
 % Classify selected traces using DeepFRET
@@ -1024,6 +1025,7 @@ mainhandles = classifyWithDeepFRET(mainhandles.figure1, selectedPairs);
 % Update GUI with classification results
 updateFRETpairlist(mainhandles.figure1, handles.figure1);
 updateFRETpairplots(mainhandles.figure1, handles.figure1);
+FRETpairwindowResizeFcn(guidata(handles.figure1));
 
 function GroupingsMenu_Callback(hObject, ~, handles) %% The Groups menu
 handles = turnoffFRETpairwindowtoggles(handles); % Turn of integration ROIs
