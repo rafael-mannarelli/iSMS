@@ -92,16 +92,16 @@ for k = 1:size(selectedPairs,1)
         % Visualize the trace matrix before reporting the failure for easier
         % debugging of dimension mismatches or other issues
         [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, Dleakage, Adirect);
-        xi = [F_DA; I_DD; I_AA];
+        xi = [F_DA; I_DD; I_AA]';
         if ~any(isnan(I_AA))
-            xi = xi([2 3 1], :);
+            xi = xi(:, [2 3 1]);
         else
-            xi = xi([2 3], :);
+            xi = xi(:, [2 3]);
         end
         fprintf('DeepFRET input matrix for pair (%d,%d):\n', file, pair);
         disp(xi);
         figure('Name','DeepFRET input before failure');
-        plot(xi');
+        plot(xi);
         xlabel('Frame');
         ylabel('Intensity');
         title(sprintf('Trace (%d,%d)', file, pair));
@@ -141,12 +141,14 @@ function [F_DA, I_DD, I_DA, I_AA] = correct_DA(intensities, alpha, delta)
 end
 
 function Xn = sample_max_normalize(X)
-    % Normalize each trace by its maximum intensity
-    if isvector(X)
-        X = X(:)';
+    % Normalize each trace by the global maximum intensity
+    % Works for both vector input (1 x N) and matrix input (N x C)
+    arr_max = max(X(:));
+    if arr_max == 0
+        Xn = X;
+    else
+        Xn = X ./ arr_max;
     end
-    arr_max = max(X,[],2);
-    Xn = X ./ arr_max;
 end
 
 function bleachFrame = find_bleach(p_bleach, threshold, window)
@@ -179,28 +181,28 @@ end
 
 function [traceClass, confidence, probs] = classify_trace(intensities, alpha, delta, net2C, net3C)
     [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, alpha, delta);
-    xi = [F_DA; I_DD; I_AA];
+    xi = [F_DA; I_DD; I_AA]';
 
     hasRed = ~any(isnan(I_AA));
     if hasRed
         model = net3C;
-        xi = xi([2 3 1], :);
+        xi = xi(:, [2 3 1]);
         expectedDims = 3;
     else
         model = net2C;
-        xi = xi([2 3], :);
+        xi = xi(:, [2 3]);
         expectedDims = 2;
     end
 
     % Debug: visualize if the input feature dimension is incorrect
-    if size(xi,1) ~= expectedDims
-        fprintf('DeepFRET expected %d features but got %d. Trace matrix:\n', expectedDims, size(xi,1));
+    if size(xi,2) ~= expectedDims
+        fprintf('DeepFRET expected %d features but got %d. Trace matrix:\n', expectedDims, size(xi,2));
         disp(xi);
         figure('Name','DeepFRET input dimension mismatch');
-        plot(xi');
+        plot(xi);
         xlabel('Frame');
         ylabel('Intensity');
-        title(sprintf('DeepFRET input dimension %d, expected %d', size(xi,1), expectedDims));
+        title(sprintf('DeepFRET input dimension %d, expected %d', size(xi,2), expectedDims));
     end
 
     xi = sample_max_normalize(xi);
