@@ -93,11 +93,10 @@ for k = 1:size(selectedPairs,1)
         % debugging of dimension mismatches or other issues
         [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, Dleakage, Adirect);
         % Show the trace matrix in the orientation used for prediction
-        xi = [F_DA; I_DD; I_AA];
         if ~any(isnan(I_AA))
-            xi = xi([2 3 1], :);
+            xi = [I_DD; I_AA; F_DA];
         else
-            xi = xi([2 3], :);
+            xi = [I_DD; F_DA];
         end
         fprintf('DeepFRET input matrix for pair (%d,%d):\n', file, pair);
         disp(xi');
@@ -182,16 +181,14 @@ end
 
 function [traceClass, confidence, probs] = classify_trace(intensities, alpha, delta, net2C, net3C)
     [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, alpha, delta);
-    xi = [F_DA; I_DD; I_AA];
-
     hasRed = ~any(isnan(I_AA));
     if hasRed
         model = net3C;
-        xi = xi([2 3 1], :);
+        xi = [I_DD; I_AA; F_DA];
         expectedDims = 3;
     else
         model = net2C;
-        xi = xi([2 3], :);
+        xi = [I_DD; F_DA];
         expectedDims = 2;
     end
 
