@@ -122,7 +122,9 @@ for k = 1:numel(tags)
     htmp = findobj(handles.figure1,'Tag',tags{k});
     if ~isempty(htmp)
         handles.(tags{k}) = htmp;
-        set(htmp,'Visible','off','String','-');
+        if contains(tags{k},'ValueTextBox')
+            set(htmp,'String','-%');
+        end
     end
 end
 
