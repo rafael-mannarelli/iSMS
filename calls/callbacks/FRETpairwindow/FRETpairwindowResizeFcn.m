@@ -149,41 +149,32 @@ setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
 % DeepFRET confidence and category labels (below trace axes)
 axBottom = axspaceB; % bottom pixel position of PRtraceAxes
 
-% Horizontal offsets relative to axis width
-confLabelX  = axX + axW*0.1668;
-confLabelW  = axW*0.2506;
-confValueX  = axX + axW*0.3746;
-valueW      = axW*0.1059;
-catValueX   = axX + axW*0.6374;
-catLabelX   = axX + axW*0.7046;
-catLabelW   = axW*0.2098;
+% Layout uses two rows: confidence on first row, class probabilities on second
+confLabelX = axX + axW*0.05;
+confValueX = confLabelX + axW*0.10;
 
-% Vertical offsets below PRtraceAxes
-bottoms.text28                = axBottom - axH*0.5510;
-bottoms.confidenceValueTextBox = axBottom - axH*0.4731;
-bottoms.aggregatedValueTextBox = axBottom - axH*0.2064;
-bottoms.aggregatedTextBox      = axBottom - axH*0.2322;
-bottoms.noisyValueTextBox      = axBottom - axH*0.3785;
-bottoms.noisyTextBox           = axBottom - axH*0.4043;
-bottoms.scrambledValueTextBox  = axBottom - axH*0.5506;
-bottoms.scrambledTextBox       = axBottom - axH*0.5764;
-bottoms.staticValueTextBox     = axBottom - axH*0.7227;
-bottoms.staticTextBox          = axBottom - axH*0.7485;
-bottoms.dynamicValueTextBox    = axBottom - axH*0.8948;
-bottoms.dynamicTextBox         = axBottom - axH*0.9292;
+row1Y = axBottom - textheight - verspace;
+row2Y = row1Y - textheight - verspace;
 
-setpixelposition(fpHandles.text28,              [confLabelX bottoms.text28               confLabelW textheight])
-setpixelposition(fpHandles.confidenceValueTextBox,[confValueX bottoms.confidenceValueTextBox valueW textheight])
-setpixelposition(fpHandles.aggregatedValueTextBox,[catValueX bottoms.aggregatedValueTextBox valueW textheight])
-setpixelposition(fpHandles.aggregatedTextBox,     [catLabelX bottoms.aggregatedTextBox     catLabelW textheight])
-setpixelposition(fpHandles.staticValueTextBox,    [catValueX bottoms.staticValueTextBox    valueW textheight])
-setpixelposition(fpHandles.staticTextBox,         [catLabelX bottoms.staticTextBox         catLabelW textheight])
-setpixelposition(fpHandles.dynamicValueTextBox,   [catValueX bottoms.dynamicValueTextBox   valueW textheight])
-setpixelposition(fpHandles.dynamicTextBox,        [catLabelX bottoms.dynamicTextBox        catLabelW textheight])
-setpixelposition(fpHandles.noisyValueTextBox,     [catValueX bottoms.noisyValueTextBox     valueW textheight])
-setpixelposition(fpHandles.noisyTextBox,          [catLabelX bottoms.noisyTextBox          catLabelW textheight])
-setpixelposition(fpHandles.scrambledValueTextBox, [catValueX bottoms.scrambledValueTextBox valueW textheight])
-setpixelposition(fpHandles.scrambledTextBox,      [catLabelX bottoms.scrambledTextBox      catLabelW textheight])
+catStartX = axX + axW*0.30;
+catSpacing = axW*0.13;
+labelW = axW*0.07;
+valueW = axW*0.05;
+
+setpixelposition(fpHandles.text28, [confLabelX row1Y labelW textheight])
+setpixelposition(fpHandles.confidenceValueTextBox, [confValueX row1Y valueW textheight])
+
+catLabels = {fpHandles.aggregatedTextBox, fpHandles.staticTextBox, ...
+    fpHandles.dynamicTextBox, fpHandles.noisyTextBox, fpHandles.scrambledTextBox};
+catValues = {fpHandles.aggregatedValueTextBox, fpHandles.staticValueTextBox, ...
+    fpHandles.dynamicValueTextBox, fpHandles.noisyValueTextBox, fpHandles.scrambledValueTextBox};
+
+for idx = 1:numel(catLabels)
+    lx = catStartX + (idx-1)*catSpacing;
+    vx = lx + labelW;
+    setpixelposition(catLabels{idx}, [lx row2Y labelW textheight])
+    setpixelposition(catValues{idx}, [vx row2Y valueW textheight])
+end
 
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
