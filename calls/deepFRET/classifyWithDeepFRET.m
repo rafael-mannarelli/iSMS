@@ -124,11 +124,12 @@ function [F_DA, I_DD, I_DA, I_AA] = correct_DA(intensities, alpha, delta)
     end
 end
 
-function Xn = sample_max_normalize_3d(X)
-    if ndims(X) == 2
-        X = reshape(X,1,size(X,1),size(X,2));
+function Xn = sample_max_normalize(X)
+    % Normalize each trace by its maximum intensity
+    if isvector(X)
+        X = X(:)';
     end
-    arr_max = max(X,[],[2 3]);
+    arr_max = max(X,[],2);
     Xn = X ./ arr_max;
 end
 
@@ -162,18 +163,18 @@ end
 
 function [traceClass, confidence, probs] = classify_trace(intensities, alpha, delta, net2C, net3C)
     [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, alpha, delta);
-    xi = [F_DA; I_DD; I_AA]';
+    xi = [F_DA; I_DD; I_AA];
 
     hasRed = ~any(isnan(I_AA));
     if hasRed
         model = net3C;
-        xi = xi(:,[2 3 1]);
+        xi = xi([2 3 1], :);
     else
         model = net2C;
-        xi = xi(:,[2 3]);
+        xi = xi([2 3], :);
     end
 
-    xi = sample_max_normalize_3d(xi);
+    xi = sample_max_normalize(xi);
     yi = predict(model, xi);
     [p, confidence, ~] = seq_probabilities(yi);
     [~, idx] = max(p);
