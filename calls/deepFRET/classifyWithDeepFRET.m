@@ -89,6 +89,22 @@ for k = 1:size(selectedPairs,1)
         probs.confidence = conf;
         mainhandles.data(file).FRETpairs(pair).DeepFRET_probs = probs;
     catch ME
+        % Visualize the trace matrix before reporting the failure for easier
+        % debugging of dimension mismatches or other issues
+        [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, Dleakage, Adirect);
+        xi = [F_DA; I_DD; I_AA];
+        if ~any(isnan(I_AA))
+            xi = xi([2 3 1], :);
+        else
+            xi = xi([2 3], :);
+        end
+        fprintf('DeepFRET input matrix for pair (%d,%d):\n', file, pair);
+        disp(xi);
+        figure('Name','DeepFRET input before failure');
+        plot(xi');
+        xlabel('Frame');
+        ylabel('Intensity');
+        title(sprintf('Trace (%d,%d)', file, pair));
         warning('DeepFRET classification failed for pair (%i,%i): %s',file,pair,ME.message);
         failedPairs(end+1,:) = [file pair]; %#ok<AGROW>
     end
