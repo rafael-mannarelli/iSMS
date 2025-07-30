@@ -55,6 +55,7 @@ end
 
 progressbar('DeepFRET')
 
+failedPairs = [];
 for k = 1:size(selectedPairs,1)
     file = selectedPairs(k,1);
     pair = selectedPairs(k,2);
@@ -89,12 +90,16 @@ for k = 1:size(selectedPairs,1)
         mainhandles.data(file).FRETpairs(pair).DeepFRET_probs = probs;
     catch ME
         warning('DeepFRET classification failed for pair (%i,%i): %s',file,pair,ME.message);
+        failedPairs(end+1,:) = [file pair]; %#ok<AGROW>
     end
 
     progressbar(k/size(selectedPairs,1))
 end
 
 progressbar(1)
+if ~isempty(failedPairs)
+    warndlg(sprintf('DeepFRET classification failed for %d traces. See command window for details.', size(failedPairs,1)), 'DeepFRET');
+end
 updatemainhandles(mainhandles);
 
 end
