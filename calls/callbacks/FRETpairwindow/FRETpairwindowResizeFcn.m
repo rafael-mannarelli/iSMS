@@ -145,27 +145,46 @@ vpos = vpos-2*textheight-verspace;
 setpixelposition(fpHandles.PairCoordinatesTextbox, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
-% DeepFRET confidence label
-confDelta = 0.114 * figpos(3);
-catDelta = 0.037 * figpos(3);
-setpixelposition(fpHandles.text28,[imX-4-confDelta vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.confidenceValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.aggregatedValueTextBox,[imX-4 vpos imW+8 textheight])
-setpixelposition(fpHandles.aggregatedTextBox,[imX-4+catDelta vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.staticValueTextBox,[imX-4 vpos imW+8 textheight])
-setpixelposition(fpHandles.staticTextBox,[imX-4+catDelta vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.dynamicValueTextBox,[imX-4 vpos imW+8 textheight])
-setpixelposition(fpHandles.dynamicTextBox,[imX-4+catDelta vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.noisyValueTextBox,[imX-4 vpos imW+8 textheight])
-setpixelposition(fpHandles.noisyTextBox,[imX-4+catDelta vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.scrambledValueTextBox,[imX-4 vpos imW+8 textheight])
-setpixelposition(fpHandles.scrambledTextBox,[imX-4+catDelta vpos imW+8 textheight])
+
+% DeepFRET confidence and category labels (below trace axes)
+axBottom = axspaceB; % bottom pixel position of PRtraceAxes
+
+% Horizontal offsets relative to axis width
+confLabelX  = axX + axW*0.1668;
+confLabelW  = axW*0.2506;
+confValueX  = axX + axW*0.3746;
+valueW      = axW*0.1059;
+catValueX   = axX + axW*0.6374;
+catLabelX   = axX + axW*0.7046;
+catLabelW   = axW*0.2098;
+
+% Vertical offsets below PRtraceAxes
+bottoms.text28                = axBottom - axH*0.5510;
+bottoms.confidenceValueTextBox = axBottom - axH*0.4731;
+bottoms.aggregatedValueTextBox = axBottom - axH*0.2064;
+bottoms.aggregatedTextBox      = axBottom - axH*0.2322;
+bottoms.noisyValueTextBox      = axBottom - axH*0.3785;
+bottoms.noisyTextBox           = axBottom - axH*0.4043;
+bottoms.scrambledValueTextBox  = axBottom - axH*0.5506;
+bottoms.scrambledTextBox       = axBottom - axH*0.5764;
+bottoms.staticValueTextBox     = axBottom - axH*0.7227;
+bottoms.staticTextBox          = axBottom - axH*0.7485;
+bottoms.dynamicValueTextBox    = axBottom - axH*0.8948;
+bottoms.dynamicTextBox         = axBottom - axH*0.9292;
+
+setpixelposition(fpHandles.text28,              [confLabelX bottoms.text28               confLabelW textheight])
+setpixelposition(fpHandles.confidenceValueTextBox,[confValueX bottoms.confidenceValueTextBox valueW textheight])
+setpixelposition(fpHandles.aggregatedValueTextBox,[catValueX bottoms.aggregatedValueTextBox valueW textheight])
+setpixelposition(fpHandles.aggregatedTextBox,     [catLabelX bottoms.aggregatedTextBox     catLabelW textheight])
+setpixelposition(fpHandles.staticValueTextBox,    [catValueX bottoms.staticValueTextBox    valueW textheight])
+setpixelposition(fpHandles.staticTextBox,         [catLabelX bottoms.staticTextBox         catLabelW textheight])
+setpixelposition(fpHandles.dynamicValueTextBox,   [catValueX bottoms.dynamicValueTextBox   valueW textheight])
+setpixelposition(fpHandles.dynamicTextBox,        [catLabelX bottoms.dynamicTextBox        catLabelW textheight])
+setpixelposition(fpHandles.noisyValueTextBox,     [catValueX bottoms.noisyValueTextBox     valueW textheight])
+setpixelposition(fpHandles.noisyTextBox,          [catLabelX bottoms.noisyTextBox          catLabelW textheight])
+setpixelposition(fpHandles.scrambledValueTextBox, [catValueX bottoms.scrambledValueTextBox valueW textheight])
+setpixelposition(fpHandles.scrambledTextBox,      [catLabelX bottoms.scrambledTextBox      catLabelW textheight])
+
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
 
