@@ -178,6 +178,8 @@ function [traceClass, confidence, probs] = classify_trace(intensities, alpha, de
 
     % Debug: visualize if the input feature dimension is incorrect
     if size(xi,1) ~= expectedDims
+        fprintf('DeepFRET expected %d features but got %d. Trace matrix:\n', expectedDims, size(xi,1));
+        disp(xi);
         figure('Name','DeepFRET input dimension mismatch');
         plot(xi');
         xlabel('Frame');
