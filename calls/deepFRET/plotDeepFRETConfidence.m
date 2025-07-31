@@ -48,9 +48,12 @@ labels = {};
 for f = 1:numel(mainhandles.data)
     pairs = mainhandles.data(f).FRETpairs;
     for p = 1:numel(pairs)
-        if isfield(pairs(p),'DeepFRET_confidence')
-            conf(end+1) = pairs(p).DeepFRET_confidence * 100; %#ok<AGROW>
-            labels{end+1} = sprintf('%d-%d', f, p); %#ok<AGROW>
+        if isfield(pairs(p),'DeepFRET_confidence') && isscalar(pairs(p).DeepFRET_confidence)
+            conf(end+1) = pairs(p).DeepFRET_confidence * 100;
+            labels{end+1} = sprintf('%d-%d', f, p);
+        else
+            % Optional: warn about non-scalar confidence value
+            fprintf('Skipping trace (%d,%d): non-scalar or missing confidence.\n', f, p);
         end
     end
 end

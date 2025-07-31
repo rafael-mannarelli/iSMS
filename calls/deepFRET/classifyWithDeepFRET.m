@@ -81,32 +81,20 @@ for k = 1:size(selectedPairs,1)
         [cls, conf, prob] = classify_trace(intensities, Dleakage, Adirect, net2C, net3C);
         mainhandles.data(file).FRETpairs(pair).DeepFRET_class = cls;
         mainhandles.data(file).FRETpairs(pair).DeepFRET_confidence = conf;
-        probs.aggregated = prob(2);
-        probs.noisy = prob(3);
-        probs.scrambled = prob(4);
-        probs.static = prob(5);
-        probs.dynamic = sum(prob(6:9));
+        probs.aggregated = prob(1);
+        probs.noisy = prob(2);
+        probs.scrambled = prob(3);
+        probs.static = prob(4);
+        probs.dynamic = prob(5);
         probs.confidence = conf;
         mainhandles.data(file).FRETpairs(pair).DeepFRET_probs = probs;
     catch ME
-        % Visualize the trace matrix before reporting the failure for easier
-        % debugging of dimension mismatches or other issues
         [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, Dleakage, Adirect);
-        % Show the trace matrix in the orientation used for prediction
         if ~any(isnan(I_AA))
-            xi = [I_DD; I_AA; F_DA];
+            xi = [I_DD, I_AA, F_DA]';
         else
-            xi = [I_DD; F_DA];
+            xi = [I_DD, F_DA]';
         end
-        fprintf('DeepFRET input matrix for pair (%d,%d):\n', file, pair);
-        disp(xi');
-        figure('Name','DeepFRET input before failure');
-        plot(xi');
-        xlabel('Frame');
-        ylabel('Intensity');
-        title(sprintf('Trace (%d,%d)', file, pair));
-        warning('DeepFRET classification failed for pair (%i,%i): %s',file,pair,ME.message);
-        failedPairs(end+1,:) = [file pair]; %#ok<AGROW>
     end
 
     progressbar(k/size(selectedPairs,1))
@@ -141,8 +129,6 @@ function [F_DA, I_DD, I_DA, I_AA] = correct_DA(intensities, alpha, delta)
 end
 
 function Xn = sample_max_normalize(X)
-    % Normalize each trace by the global maximum intensity
-    % Works for both vector input (1 x N) and matrix input (N x C)
     arr_max = max(X(:));
     if arr_max == 0
         Xn = X;
@@ -154,8 +140,11 @@ end
 function bleachFrame = find_bleach(p_bleach, threshold, window)
     if nargin < 2, threshold = 0.5; end
     if nargin < 3, window = 7; end
+
+    p_bleach = p_bleach(:);
     is_bleached = medfilt1(double(p_bleach > threshold), window);
-    bleachFrame = find(is_bleached,1,'first');
+    bleachFrame = find(is_bleached, 1, 'first');
+
     if isempty(bleachFrame)
         bleachFrame = [];
     elseif all(is_bleached)
@@ -163,39 +152,68 @@ function bleachFrame = find_bleach(p_bleach, threshold, window)
     end
 end
 
-function [p, confidence, bleachFrame] = seq_probabilities(yi, skip_threshold, min_frames)
+function [p, confidence, bleachFrame] = seq_probabilities(yi, skip_threshold, min_frames, FRETpair)
     if nargin < 2, skip_threshold = 0.5; end
-    if nargin < 3, min_frames = 5; end
-    bleachFrame = find_bleach(yi(:,1), skip_threshold);
+    if nargin < 3, min_frames = 1; end
 
-    valid = yi(yi(:,1) < skip_threshold, :);
-    if isempty(bleachFrame) || bleachFrame > min_frames
-        p = sum(valid,1) ./ size(valid,1);
-        p = p ./ sum(p);
-    else
-        p = zeros(1,size(yi,2));
-        p(1) = 1;
+    T = size(yi, 2);  % number of frames
+    bleachMask = true(1, T);  % initialize all frames as non-bleached
+
+    try
+        Didx = FRETpair.DbleachingTime;
+        Aidx = FRETpair.AbleachingTime;
+
+        disp(Didx)
+
+        if ~isempty(Didx) && ~isnan(Didx) && Didx <= T
+            bleachMask(Didx:end) = false;
+        end
+        if ~isempty(Aidx) && ~isnan(Aidx) && Aidx <= T
+            bleachMask(Aidx:end) = false;
+        end
+
+        validBleachTimes = [Didx, Aidx];
+        validBleachTimes = validBleachTimes(~isnan(validBleachTimes) & validBleachTimes <= T);
+        if isempty(validBleachTimes)
+            bleachFrame = [];
+        else
+            bleachFrame = min(validBleachTimes);
+        end
+
+    catch
+        bleachFrame = find_bleach(yi(1,:), skip_threshold);
+        bleachMask = yi(1,:) < skip_threshold;
     end
-    confidence = sum(p(5:end));
+
+    if isempty(bleachFrame) || bleachFrame > min_frames
+        p_ordered = [yi(2,:); yi(4,:); yi(3,:); yi(5,:); yi(6,:)];
+        valid_probs = p_ordered(:, bleachMask);
+        p = mean(valid_probs, 2)';
+        conf_values = yi(5,:) + yi(6,:);
+        conf_values(~bleachMask) = NaN;
+        confidence = mean(conf_values, 'omitnan');
+    else
+        p = [0 0 0 0 0];
+        confidence = 0;
+    end
 end
+
 
 function [traceClass, confidence, probs] = classify_trace(intensities, alpha, delta, net2C, net3C)
     [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, alpha, delta);
     hasRed = ~any(isnan(I_AA));
     if hasRed
         model = net3C;
-        xi = [I_DD; I_AA; F_DA];
+        xi = [I_DD, I_AA, F_DA]';
         expectedDims = 3;
     else
         model = net2C;
-        xi = [I_DD; F_DA];
+        xi = [I_DD, F_DA]';
         expectedDims = 2;
     end
 
-    % Debug: visualize if the input feature dimension is incorrect
     if size(xi,1) ~= expectedDims
         fprintf('DeepFRET expected %d features but got %d. Trace matrix:\n', expectedDims, size(xi,1));
-        disp(xi);
         figure('Name','DeepFRET input dimension mismatch');
         plot(xi');
         xlabel('Frame');
@@ -204,11 +222,18 @@ function [traceClass, confidence, probs] = classify_trace(intensities, alpha, de
     end
 
     xi = sample_max_normalize(xi);
-    yi = predict(model, {xi});
+    yi = predict(model, xi);
     [p, confidence, ~] = seq_probabilities(yi);
     [~, idx] = max(p);
-    classes = {"bleached","aggregated","noisy","scrambled","1-state", ...
-               "2-state","3-state","4-state","5-state"};
-    traceClass = classes{idx};
+
+    classes = {"bleached","aggregated","noisy","scrambled","static","dynamic"};
+
+    if idx > numel(classes)
+        warning('DeepFRET returned invalid class index %d. p = %s', idx, mat2str(p));
+        traceClass = 'unknown';
+    else
+        traceClass = classes{idx};
+    end
+
     probs = p;
 end
