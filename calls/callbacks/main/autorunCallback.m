@@ -48,7 +48,18 @@ set(mainhandles.mboard, 'String',textstr)
 mainhandles = myguidebox(mainhandles, 'Auto-run analysis', textstr, 'autorun',1,'http://isms.au.dk/getstarted/quick4/');
 
 % Determine how many files to run analysis
-if mainhandles.settings.autorun.AllFiles==1
+allFilesSetting = mainhandles.settings.autorun.AllFiles;
+if ischar(allFilesSetting)
+    numericVal = str2double(allFilesSetting);
+    if ~isnan(numericVal)
+        allFilesSetting = numericVal;
+    else
+        allFilesSetting = strcmpi(strtrim(allFilesSetting),'all files');
+    end
+elseif islogical(allFilesSetting)
+    allFilesSetting = double(allFilesSetting~=0);
+end
+if allFilesSetting==1
     files = 1:length(mainhandles.data);
     
     % Check if some data files have already been analysed
@@ -110,6 +121,10 @@ setFigOnTop % Sets the waitbar so that it is always in front
 
 for i = 1:length(files)
     file = files(i);
+    % Ensure callbacks expecting the selected file operate on the
+    % current item by updating the file listbox
+    set(mainhandles.FilesListbox,'Value',file)
+    mainhandles = guidata(mainhandles.figure1);
     
     % If spot-profile, ignore it
     if mainhandles.data(file).spot
