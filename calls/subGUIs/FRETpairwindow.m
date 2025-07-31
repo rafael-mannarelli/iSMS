@@ -84,6 +84,13 @@ handles.functionHandles.PairListbox_Callback = @PairListbox_Callback;
 % Set GUI properties depending on excitation scheme
 mainhandles = updateALEX(mainhandles,handles.figure1); % This may update
 
+% Additional sort menu item for DeepFRET-based sorting
+if isfield(handles,'SortMenu') && ishandle(handles.SortMenu)
+    handles.Sort_DeepFRET = uimenu(handles.SortMenu, 'Label', ...
+        'DeepFRET classification...', 'Callback', @Sort_DeepFRET_Callback, ...
+        'Tag', 'Sort_DeepFRET');
+end
+
 % Update menu checkmarks etc.
 updateFRETpairwindowGUImenus(mainhandles,handles)
 
@@ -107,6 +114,20 @@ turnoffDeployed(mainhandles, handles.figure1);
 if isfield(handles,'ToolsMenu') && ishandle(handles.ToolsMenu)
     uimenu(handles.ToolsMenu, 'Label','Classify traces from list...',...
         'Callback',@Tools_ClassifyFromList_Callback, 'Tag','Tools_ClassifyFromList');
+    uimenu(handles.ToolsMenu, 'Label','Classify traces with DeepFRET...',...
+        'Callback',@Tools_DeepFRET_Callback, 'Tag','Tools_DeepFRET');
+end
+
+% UI elements for DeepFRET classification probabilities
+tags = {'confidenceValueTextBox','aggregatedValueTextBox','dynamicValueTextBox',...
+        'noisyValueTextBox','scrambledValueTextBox','staticValueTextBox'};
+for k = 1:numel(tags)
+    htmp = findobj(handles.figure1,'Tag',tags{k});
+    if isempty(htmp)
+        htmp = uicontrol('Parent',handles.figure1,'Style','text',...
+            'String','-','HorizontalAlignment','left','Tag',tags{k});
+    end
+    handles.(tags{k}) = htmp;
 end
 
 % Save current properties of cursor and graphics handles
@@ -190,7 +211,10 @@ hiswin = get(mainhandles.Toolbar_histogramwindow,'State');
 
 % Handles of objects to hide when exporting figure
 h = [handles.FRETpairsTextbox handles.PairListbox handles.DeletePairPushbutton...
-    handles.paircoordinates handles.PairCoordinatesTextbox...
+    handles.paircoordinates handles.PairCoordinatesTextbox ...
+    handles.confidenceValueTextBox handles.aggregatedValueTextBox ...
+    handles.dynamicValueTextBox handles.noisyValueTextBox ...
+    handles.scrambledValueTextBox handles.staticValueTextBox ...
     handles.DDimageAxes handles.ADimageAxes handles.AAimageAxes handles.CorrectionFactorsTextbox...
     handles.DleakTextbox handles.DleakEditbox handles.AdirectTextbox handles.AdirectEditbox handles.GammaTextbox handles.GammaEditbox...
     handles.BleachingEventsTextbox handles.DbleachingsTextbox handles.AbleachingsTextbox handles.DAbleachingsTextbox...
@@ -332,6 +356,37 @@ mainhandles = sortpairsCallback(handles.figure1, 7);
 
 function Sort_maxAA_Callback(hObject, eventdata, handles)
 mainhandles = sortpairsCallback(handles.figure1, 8);
+
+function Sort_DeepFRET_Callback(hObject, eventdata, handles)
+% Sort traces based on DeepFRET confidence and bleaching behaviour
+
+% When created programmatically, the callback may be invoked with only two
+% arguments, so retrieve handles if necessary.
+if nargin < 3 || isempty(handles)
+    handles = guidata(hObject);
+end
+
+% Get mainhandles structure
+mainhandles = getmainhandles(handles);
+if isempty(mainhandles)
+    return
+end
+
+% Ask user for thresholds
+prompt = {'Minimum DeepFRET confidence:', 'Minimum frames before bleach:'};
+defans = {num2str(mainhandles.settings.FRETpairplots.minDeepFRETConf), ...
+    num2str(mainhandles.settings.FRETpairplots.minBleachFrames)};
+answer = myinputdlg(prompt,'Sort DeepFRET classification',1,defans);
+if isempty(answer)
+    return
+end
+
+mainhandles.settings.FRETpairplots.minDeepFRETConf = str2double(answer{1});
+mainhandles.settings.FRETpairplots.minBleachFrames = str2double(answer{2});
+updatemainhandles(mainhandles);
+
+% Perform sorting
+mainhandles = sortpairsCallback(handles.figure1, 9);
 
 function Sort_Update_Callback(hObject, eventdata, handles)
 % Get mainhandles structure
@@ -975,6 +1030,28 @@ end
 
 listfile = fullfile(path,file);
 mainhandles = classifyTracesFromList(mainhandles.figure1, listfile);
+
+function Tools_DeepFRET_Callback(hObject, eventdata, handles)
+% Classify selected traces using DeepFRET
+
+if nargin < 3 || isempty(handles)
+    handles = guidata(hObject);
+end
+
+handles = turnoffFRETpairwindowtoggles(handles);
+mainhandles = getmainhandles(handles);
+if isempty(mainhandles)
+    return
+end
+
+selectedPairs = selectionDlg(mainhandles,'DeepFRET classification',...
+    'Select traces to classify: ','pair');
+if isempty(selectedPairs)
+    return
+end
+
+mainhandles = classifyWithDeepFRET(mainhandles.figure1, selectedPairs);
+plotDeepFRETConfidence(mainhandles.figure1);
 
 function GroupingsMenu_Callback(hObject, ~, handles) %% The Groups menu
 handles = turnoffFRETpairwindowtoggles(handles); % Turn of integration ROIs

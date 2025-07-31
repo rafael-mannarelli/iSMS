@@ -85,6 +85,12 @@ if (isempty(mainhandles.data)) || (isempty(selectedPairs)) || (size(selectedPair
     cla(DDtraceAxes),  cla(ADtraceAxes),  cla(AAtraceAxes),  cla(StraceAxes),
     cla(PRtraceAxes),  cla(DDimageAxes),  cla(ADimageAxes),  cla(AAimageAxes)
     set(FRETpairwindowHandles.paircoordinates,'String','(-, -)')
+    set(FRETpairwindowHandles.confidenceValueTextBox,'String','-')
+    set(FRETpairwindowHandles.aggregatedValueTextBox,'String','-')
+    set(FRETpairwindowHandles.dynamicValueTextBox,'String','-')
+    set(FRETpairwindowHandles.noisyValueTextBox,'String','-')
+    set(FRETpairwindowHandles.scrambledValueTextBox,'String','-')
+    set(FRETpairwindowHandles.staticValueTextBox,'String','-')
     
     FRETpairwindowHandles.DframeSliderHandle = [];
     FRETpairwindowHandles.AframeSliderHandle = [];
@@ -412,6 +418,25 @@ Dxy = mainhandles.data(file).FRETpairs(pair).Dxy; % Position of the donor within
 Axy = mainhandles.data(file).FRETpairs(pair).Axy; % Position of the acceptor within the A ROI [x y]
 Exy = (Dxy+Axy)/2;
 set(FRETpairwindowHandles.paircoordinates,'String',sprintf('(%0.1f, %0.1f)',Exy(1),Exy(2)))
+
+% Update DeepFRET probabilities
+if isfield(mainhandles.data(file).FRETpairs(pair),'DeepFRET_probs') && ...
+        isstruct(mainhandles.data(file).FRETpairs(pair).DeepFRET_probs)
+    probs = mainhandles.data(file).FRETpairs(pair).DeepFRET_probs;
+    set(FRETpairwindowHandles.confidenceValueTextBox,'String',sprintf('%0.1f %%',100*probs.confidence));
+    set(FRETpairwindowHandles.aggregatedValueTextBox,'String',sprintf('%0.1f %%',100*probs.aggregated));
+    set(FRETpairwindowHandles.dynamicValueTextBox,'String',sprintf('%0.1f %%',100*probs.dynamic));
+    set(FRETpairwindowHandles.noisyValueTextBox,'String',sprintf('%0.1f %%',100*probs.noisy));
+    set(FRETpairwindowHandles.scrambledValueTextBox,'String',sprintf('%0.1f %%',100*probs.scrambled));
+    set(FRETpairwindowHandles.staticValueTextBox,'String',sprintf('%0.1f %%',100*probs.static));
+else
+    set(FRETpairwindowHandles.confidenceValueTextBox,'String','-');
+    set(FRETpairwindowHandles.aggregatedValueTextBox,'String','-');
+    set(FRETpairwindowHandles.dynamicValueTextBox,'String','-');
+    set(FRETpairwindowHandles.noisyValueTextBox,'String','-');
+    set(FRETpairwindowHandles.scrambledValueTextBox,'String','-');
+    set(FRETpairwindowHandles.staticValueTextBox,'String','-');
+end
 
 %% Nested
 
