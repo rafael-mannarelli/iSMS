@@ -365,6 +365,7 @@ settings.autorun = struct(...
     'AllFiles', 1,... % Choice of whether to run auto analysis of all files (1) or just selected (2), when pressing the green play button in the toolbar
     'autoROI', 0,... % Choice of whether to auto-align ROIs as a first step in the auto-run
     'autoBleach', 1,... % Choice of whether to run bleach finder as a final step
+    'deepFRET', 0,... % Run DeepFRET classification at the end
     'filter1', 0,... % Apply molecule filter 1
     'filter2', 0,... % Apply molecule filter 2
     'filter3', 0,... % Apply molecule filter 3
