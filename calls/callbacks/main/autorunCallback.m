@@ -48,7 +48,13 @@ set(mainhandles.mboard, 'String',textstr)
 mainhandles = myguidebox(mainhandles, 'Auto-run analysis', textstr, 'autorun',1,'http://isms.au.dk/getstarted/quick4/');
 
 % Determine how many files to run analysis
-if mainhandles.settings.autorun.AllFiles==1
+allFilesSetting = mainhandles.settings.autorun.AllFiles;
+if ischar(allFilesSetting)
+    allFilesSetting = strcmpi(allFilesSetting,'all files');
+elseif islogical(allFilesSetting)
+    allFilesSetting = allFilesSetting~=0;
+end
+if allFilesSetting==1
     files = 1:length(mainhandles.data);
     
     % Check if some data files have already been analysed
