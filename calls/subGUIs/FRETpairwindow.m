@@ -52,6 +52,15 @@ function FRETpairwindow_OpeningFcn(hObject, eventdata, handles, varargin) %% Exe
 % Set position, title and logo. Turn off visibility.
 initGUI(handles.figure1, 'FRET Pairs Window', 'west');
 
+% Enlarge window to fit DeepFRET labels
+oldUnits = get(handles.figure1,'Units');
+set(handles.figure1,'Units','characters');
+pos = get(handles.figure1,'Position');
+pos(3) = pos(3) + 20; % add width
+pos(4) = pos(4) + 10; % add height
+set(handles.figure1,'Position',pos);
+set(handles.figure1,'Units',oldUnits);
+
 % Handle to main figure window
 handles.main = getappdata(0,'mainhandle');
 mainhandles = guidata(handles.main);
