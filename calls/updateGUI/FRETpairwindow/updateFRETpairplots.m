@@ -420,7 +420,8 @@ Exy = (Dxy+Axy)/2;
 set(FRETpairwindowHandles.paircoordinates,'String',sprintf('(%0.1f, %0.1f)',Exy(1),Exy(2)))
 
 % Update DeepFRET probabilities
-if isfield(mainhandles.data(file).FRETpairs(pair),'DeepFRET_probs')
+if isfield(mainhandles.data(file).FRETpairs(pair),'DeepFRET_probs') && ...
+        isstruct(mainhandles.data(file).FRETpairs(pair).DeepFRET_probs)
     probs = mainhandles.data(file).FRETpairs(pair).DeepFRET_probs;
     set(FRETpairwindowHandles.confidenceValueTextBox,'String',sprintf('%0.1f %%',100*probs.confidence));
     set(FRETpairwindowHandles.aggregatedValueTextBox,'String',sprintf('%0.1f %%',100*probs.aggregated));

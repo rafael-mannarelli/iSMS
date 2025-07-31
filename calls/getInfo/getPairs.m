@@ -330,6 +330,55 @@ if strcmpi(choice,'Listed')
         % Sort according to intensity
         temp = flipud( sortrows(temp) );
         selectedPairs = temp(:,2:3);
+
+    elseif sortpairsChoice==9
+        % Sort according to DeepFRET confidence with threshold filters
+
+        selectedPairs = getPairs(mainhandle,'all');
+        if isempty(selectedPairs)
+            return
+        end
+
+        minConf = mainhandles.settings.FRETpairplots.minDeepFRETConf;
+        minFrames = mainhandles.settings.FRETpairplots.minBleachFrames;
+
+        temp = zeros(size(selectedPairs,1),3);
+        keep = false(size(selectedPairs,1),1);
+
+        for i = 1:size(selectedPairs,1)
+            file = selectedPairs(i,1);
+            pair = selectedPairs(i,2);
+
+            conf = 0;
+            if isfield(mainhandles.data(file).FRETpairs(pair),'DeepFRET_confidence') && ...
+                    ~isempty(mainhandles.data(file).FRETpairs(pair).DeepFRET_confidence)
+                conf = mainhandles.data(file).FRETpairs(pair).DeepFRET_confidence;
+            end
+
+            Dtime = mainhandles.data(file).FRETpairs(pair).DbleachingTime;
+            Atime = mainhandles.data(file).FRETpairs(pair).AbleachingTime;
+            times = [Dtime Atime];
+            times = times(~isnan(times) & times>0);
+            if isempty(times)
+                frames = mainhandles.data(file).rawmovieLength;
+            else
+                frames = min(times);
+            end
+
+            if conf >= minConf && frames >= minFrames
+                keep(i) = true;
+                temp(i,1) = conf;
+                temp(i,2:3) = selectedPairs(i,:);
+            end
+        end
+
+        temp = temp(keep,:);
+        if isempty(temp)
+            selectedPairs = zeros(0,2);
+        else
+            temp = flipud(sortrows(temp));
+            selectedPairs = temp(:,2:3);
+        end
         
     else
         % If only pairs in selected movie file is selected

@@ -84,6 +84,13 @@ handles.functionHandles.PairListbox_Callback = @PairListbox_Callback;
 % Set GUI properties depending on excitation scheme
 mainhandles = updateALEX(mainhandles,handles.figure1); % This may update
 
+% Additional sort menu item for DeepFRET-based sorting
+if isfield(handles,'SortMenu') && ishandle(handles.SortMenu)
+    handles.Sort_DeepFRET = uimenu(handles.SortMenu, 'Label', ...
+        'DeepFRET classification...', 'Callback', @Sort_DeepFRET_Callback, ...
+        'Tag', 'Sort_DeepFRET');
+end
+
 % Update menu checkmarks etc.
 updateFRETpairwindowGUImenus(mainhandles,handles)
 
@@ -349,6 +356,37 @@ mainhandles = sortpairsCallback(handles.figure1, 7);
 
 function Sort_maxAA_Callback(hObject, eventdata, handles)
 mainhandles = sortpairsCallback(handles.figure1, 8);
+
+function Sort_DeepFRET_Callback(hObject, eventdata, handles)
+% Sort traces based on DeepFRET confidence and bleaching behaviour
+
+% When created programmatically, the callback may be invoked with only two
+% arguments, so retrieve handles if necessary.
+if nargin < 3 || isempty(handles)
+    handles = guidata(hObject);
+end
+
+% Get mainhandles structure
+mainhandles = getmainhandles(handles);
+if isempty(mainhandles)
+    return
+end
+
+% Ask user for thresholds
+prompt = {'Minimum DeepFRET confidence:', 'Minimum frames before bleach:'};
+defans = {num2str(mainhandles.settings.FRETpairplots.minDeepFRETConf), ...
+    num2str(mainhandles.settings.FRETpairplots.minBleachFrames)};
+answer = myinputdlg(prompt,'Sort DeepFRET classification',1,defans);
+if isempty(answer)
+    return
+end
+
+mainhandles.settings.FRETpairplots.minDeepFRETConf = str2double(answer{1});
+mainhandles.settings.FRETpairplots.minBleachFrames = str2double(answer{2});
+updatemainhandles(mainhandles);
+
+% Perform sorting
+mainhandles = sortpairsCallback(handles.figure1, 9);
 
 function Sort_Update_Callback(hObject, eventdata, handles)
 % Get mainhandles structure
