@@ -1,53 +1,73 @@
-function plotDeepFRETConfidence(mainhandles)
-%PLOTDEEPFRETCONFIDENCE Plot DeepFRET confidence for all traces
+function plotDeepFRETConfidence(handles)
+%plotDeepFRETConfidence Plot DeepFRET confidence for each FRET pair
 %
-%   PLOTDEEPFRETCONFIDENCE(mainhandles) will create a bar chart of the
-%   DeepFRET classification confidence for each FRET pair in the session.
-%   The input can be the handles structure or the handle to the main
-%   iSMS window.
+%   plotDeepFRETConfidence(handles) gathers the DeepFRET classification
+%   confidence stored in each FRET pair and displays them in a bar plot.
+%
+%   Input:
+%       handles - structure or figure handle from which to obtain
+%                 the mainhandles structure. If omitted the function
+%                 will attempt to obtain it from the current figure.
+%
+%   The function expects that traces have already been classified using
+%   classifyWithDeepFRET so that the fields 'DeepFRET_confidence' exist.
 %
 %   Example:
-%       mainhandles = guidata(mainWindowHandle);
-%       plotDeepFRETConfidence(mainhandles);
+%       plotDeepFRETConfidence(gcf);
 %
-%   The function expects that DeepFRET classification has already been
-%   performed so that each FRET pair contains the field
-%   'DeepFRET_confidence'.
+% --- Copyrights (C) ---
+% iSMS - Single-molecule FRET microscopy software
+% Copyright (C) Aarhus University, @ V. Birkedal Lab
+%
+%     This program is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+%
+%     The GNU General Public License is found at
+%     <http://www.gnu.org/licenses/gpl.html>.
 
-if nargin < 1 || isempty(mainhandles)
-    error('mainhandles structure or handle is required');
+% Obtain the mainhandles structure. If the input argument is missing or
+% invalid fall back to the globally stored main handle.
+if nargin < 1 || isempty(handles)
+    mainhandles = guidata(getappdata(0,'mainhandle'));
+else
+    mainhandles = getmainhandles(handles);
+    if isempty(mainhandles)
+        mainhandles = guidata(getappdata(0,'mainhandle'));
+    end
 end
 
-if ishandle(mainhandles)
-    mainhandles = guidata(mainhandles);
-end
-if isempty(mainhandles) || ~isstruct(mainhandles)
-    error('Invalid handles structure');
+if isempty(mainhandles) || ~isfield(mainhandles,'data') || isempty(mainhandles.data)
+    errordlg('No data available to plot DeepFRET confidence.', 'DeepFRET');
+    return
 end
 
-confValues = [];
+conf = [];
 labels = {};
-
 for f = 1:numel(mainhandles.data)
     pairs = mainhandles.data(f).FRETpairs;
     for p = 1:numel(pairs)
-        if isfield(pairs(p),'DeepFRET_confidence') && ~isempty(pairs(p).DeepFRET_confidence)
-            confValues(end+1) = pairs(p).DeepFRET_confidence; %#ok<AGROW>
-            labels{end+1} = sprintf('(%d,%d)', f, p); %#ok<AGROW>
+        if isfield(pairs(p),'DeepFRET_confidence') && isscalar(pairs(p).DeepFRET_confidence)
+            conf(end+1) = pairs(p).DeepFRET_confidence * 100; %#ok<AGROW>
+            labels{end+1} = sprintf('%d-%d', f, p); %#ok<AGROW>
+        else
+            % Optional: warn about non-scalar confidence value
+            fprintf('Skipping trace (%d,%d): non-scalar or missing confidence.\n', f, p);
         end
     end
 end
 
-if isempty(confValues)
-    warning('No DeepFRET confidence values found');
+if isempty(conf)
+    errordlg('No DeepFRET classification results available.', 'DeepFRET');
     return
 end
 
-figure('Name','DeepFRET Confidence');
-bar(confValues*100);
-set(gca,'XTick',1:numel(confValues));
-set(gca,'XTickLabel',labels);
-set(gca,'XTickLabelRotation',45);
+figure('Name','DeepFRET confidence per trace');
+bar(conf);
 ylabel('Confidence (%)');
-title('DeepFRET classification confidence per trace');
+xlabel('File-Pair');
+title('DeepFRET classification confidence');
+set(gca,'XTick',1:numel(labels),'XTickLabel',labels);
+set(gca,'XTickLabelRotation',90);
 end

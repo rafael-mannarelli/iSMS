@@ -55,6 +55,7 @@ end
 
 progressbar('DeepFRET')
 
+failedPairs = [];
 for k = 1:size(selectedPairs,1)
     file = selectedPairs(k,1);
     pair = selectedPairs(k,2);
@@ -88,13 +89,35 @@ for k = 1:size(selectedPairs,1)
         probs.confidence = conf;
         mainhandles.data(file).FRETpairs(pair).DeepFRET_probs = probs;
     catch ME
+        % Visualize the trace matrix before reporting the failure for easier
+        % debugging of dimension mismatches or other issues
+        [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, Dleakage, Adirect);
+        % Show the trace matrix in the orientation used for prediction
+        if ~any(isnan(I_AA))
+            xi = [I_DD, I_AA, F_DA]';
+        else
+            xi = [I_DD, F_DA]';
+        end
+
+        assignin('base', 'xi', xi);
+        fprintf('DeepFRET input matrix for pair (%d,%d):\n', file, pair);
+        disp(xi');
+        figure('Name','DeepFRET input before failure');
+        plot(xi');
+        xlabel('Frame');
+        ylabel('Intensity');
+        title(sprintf('Trace (%d,%d)', file, pair));
         warning('DeepFRET classification failed for pair (%i,%i): %s',file,pair,ME.message);
+        failedPairs(end+1,:) = [file pair]; %#ok<AGROW>
     end
 
     progressbar(k/size(selectedPairs,1))
 end
 
 progressbar(1)
+if ~isempty(failedPairs)
+    warndlg(sprintf('DeepFRET classification failed for %d traces. See command window for details.', size(failedPairs,1)), 'DeepFRET');
+end
 updatemainhandles(mainhandles);
 
 end
@@ -119,12 +142,15 @@ function [F_DA, I_DD, I_DA, I_AA] = correct_DA(intensities, alpha, delta)
     end
 end
 
-function Xn = sample_max_normalize_3d(X)
-    if ndims(X) == 2
-        X = reshape(X,1,size(X,1),size(X,2));
+function Xn = sample_max_normalize(X)
+    % Normalize each trace by the global maximum intensity
+    % Works for both vector input (1 x N) and matrix input (N x C)
+    arr_max = max(X(:));
+    if arr_max == 0
+        Xn = X;
+    else
+        Xn = X ./ arr_max;
     end
-    arr_max = max(X,[],[2 3]);
-    Xn = X ./ arr_max;
 end
 
 function bleachFrame = find_bleach(p_bleach, threshold, window)
@@ -157,23 +183,42 @@ end
 
 function [traceClass, confidence, probs] = classify_trace(intensities, alpha, delta, net2C, net3C)
     [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, alpha, delta);
-    xi = [F_DA; I_DD; I_AA]';
-
     hasRed = ~any(isnan(I_AA));
     if hasRed
         model = net3C;
-        xi = xi(:,[2 3 1]);
+        xi = [I_DD, I_AA, F_DA]';
+        expectedDims = 3;
     else
         model = net2C;
-        xi = xi(:,[2 3]);
+        xi = [I_DD, F_DA]';
+        expectedDims = 2;
     end
 
-    xi = sample_max_normalize_3d(xi);
+    % Debug: visualize if the input feature dimension is incorrect
+    if size(xi,1) ~= expectedDims
+        fprintf('DeepFRET expected %d features but got %d. Trace matrix:\n', expectedDims, size(xi,1));
+        disp(xi);
+        figure('Name','DeepFRET input dimension mismatch');
+        plot(xi');
+        xlabel('Frame');
+        ylabel('Intensity');
+        title(sprintf('DeepFRET input dimension %d, expected %d', size(xi,1), expectedDims));
+    end
+
+    xi = sample_max_normalize(xi);
     yi = predict(model, xi);
     [p, confidence, ~] = seq_probabilities(yi);
     [~, idx] = max(p);
+    
     classes = {"bleached","aggregated","noisy","scrambled","1-state", ...
                "2-state","3-state","4-state","5-state"};
-    traceClass = classes{idx};
+    
+    if idx > numel(classes)
+        warning('DeepFRET returned invalid class index %d. p = %s', idx, mat2str(p));
+        traceClass = 'unknown';
+    else
+        traceClass = classes{idx};
+    end
+
     probs = p;
 end
