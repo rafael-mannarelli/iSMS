@@ -368,7 +368,8 @@ settings.autorun = struct(...
     'filter1', 0,... % Apply molecule filter 1
     'filter2', 0,... % Apply molecule filter 2
     'filter3', 0,... % Apply molecule filter 3
-    'groupbleach', 0); % Molecules with bleaching
+    'groupbleach', 0,... % Molecules with bleaching
+    'deepFRET', 0); % Run DeepFRET classification at the end
 %% .drifting.  Drift analysis:
 settings.drifting = struct(...
     'avgchoice', 1,... % Choose to average neighbouring images when detecting drift

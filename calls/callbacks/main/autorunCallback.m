@@ -229,6 +229,14 @@ if mainhandles.settings.autorun.groupbleach
     mainhandles = creategroupforCallback(mainhandles.FRETpairwindowHandle,'DAbleach');
 end
 
+%% 7) DeepFRET classification
+
+if isfield(mainhandles.settings.autorun,'deepFRET') && mainhandles.settings.autorun.deepFRET
+    try delete(hWaitbar), end
+    pairsToClassify = getPairs(mainhandles.figure1,'file',files);
+    mainhandles = classifyWithDeepFRET(mainhandles.figure1, pairsToClassify);
+end
+
 %% Set filechoice back to previous
 
 % Waitbar

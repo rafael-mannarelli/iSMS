@@ -26,7 +26,8 @@ prompt = {...
     'Use molecule-filter 2 (density based)' 'filter2';...
     'Use molecule-filter 3 (bleaching based)' 'filter3';...
     'Group molecules:' '';...
-    'Create groups for molecules with bleaching' 'groupbleach'};
+    'Create groups for molecules with bleaching' 'groupbleach';...
+    'Run DeepFRET classification at the end' 'deepFRET'};
 
 % formats
 formats = struct('type', {}, 'style', {}, 'items', {}, ...
@@ -42,6 +43,7 @@ formats(10,1).type = 'check';
 formats(11,1).type = 'check';
 formats(13,1).type = 'text';
 formats(14,1).type = 'check';
+formats(15,1).type = 'check';
 
 % Make DefAns structure
 DefAns.AllFiles = mainhandles.settings.autorun.AllFiles;
@@ -51,6 +53,7 @@ DefAns.filter1 = mainhandles.settings.autorun.filter1;
 DefAns.filter2 = mainhandles.settings.autorun.filter2;
 DefAns.filter3 = mainhandles.settings.autorun.filter3;
 DefAns.groupbleach = mainhandles.settings.autorun.groupbleach;
+DefAns.deepFRET = mainhandles.settings.autorun.deepFRET;
 
 % Open dialog box
 [answer, cancelled] = myinputsdlg(prompt, name, formats, DefAns);
@@ -62,5 +65,5 @@ end
 
 mainhandles = savesettingasDefaultDlg(mainhandles,...
     'autorun',...
-    {'AllFiles' 'autoROI' 'autoBleach' 'filter1' 'filter2' 'filter3' 'groupbleach'},...
-    {answer.AllFiles, answer.autoROI, answer.autoBleach, answer.filter1, answer.filter2, answer.filter3, answer.groupbleach});
+    {'AllFiles' 'autoROI' 'autoBleach' 'filter1' 'filter2' 'filter3' 'groupbleach' 'deepFRET'},...
+    {answer.AllFiles, answer.autoROI, answer.autoBleach, answer.filter1, answer.filter2, answer.filter3, answer.groupbleach, answer.deepFRET});
