@@ -121,6 +121,10 @@ setFigOnTop % Sets the waitbar so that it is always in front
 
 for i = 1:length(files)
     file = files(i);
+    % Ensure callbacks expecting the selected file operate on the
+    % current item by updating the file listbox
+    set(mainhandles.FilesListbox,'Value',file)
+    mainhandles = guidata(mainhandles.figure1);
     
     % If spot-profile, ignore it
     if mainhandles.data(file).spot
