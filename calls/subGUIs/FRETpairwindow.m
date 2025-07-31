@@ -84,6 +84,14 @@ handles.functionHandles.PairListbox_Callback = @PairListbox_Callback;
 % Set GUI properties depending on excitation scheme
 mainhandles = updateALEX(mainhandles,handles.figure1); % This may update
 
+% Additional sort menu items
+if isfield(handles,'SortMenu') && ishandle(handles.SortMenu)
+    handles.Sort_DeepFRETConf = uimenu(handles.SortMenu, 'Label', 'DeepFRET confidence',...
+        'Callback', @Sort_DeepFRETConf_Callback, 'Tag', 'Sort_DeepFRETConf');
+    handles.Sort_BleachFrames = uimenu(handles.SortMenu, 'Label', 'Frames before bleach',...
+        'Callback', @Sort_BleachFrames_Callback, 'Tag', 'Sort_BleachFrames');
+end
+
 % Update menu checkmarks etc.
 updateFRETpairwindowGUImenus(mainhandles,handles)
 
@@ -349,6 +357,12 @@ mainhandles = sortpairsCallback(handles.figure1, 7);
 
 function Sort_maxAA_Callback(hObject, eventdata, handles)
 mainhandles = sortpairsCallback(handles.figure1, 8);
+
+function Sort_DeepFRETConf_Callback(hObject, eventdata, handles)
+mainhandles = sortpairsCallback(handles.figure1, 9);
+
+function Sort_BleachFrames_Callback(hObject, eventdata, handles)
+mainhandles = sortpairsCallback(handles.figure1, 10);
 
 function Sort_Update_Callback(hObject, eventdata, handles)
 % Get mainhandles structure

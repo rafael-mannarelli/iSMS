@@ -99,6 +99,8 @@ set([FRETpairwindowHandles.Sort_File...
     FRETpairwindowHandles.Sort_maxDD...
     FRETpairwindowHandles.Sort_maxAD...
     FRETpairwindowHandles.Sort_maxAA...
+    FRETpairwindowHandles.Sort_DeepFRETConf...
+    FRETpairwindowHandles.Sort_BleachFrames...
     ], 'Checked','off')
 if mainhandles.settings.FRETpairplots.sortpairs==1
     set(FRETpairwindowHandles.Sort_File, 'Checked','on')
@@ -123,6 +125,10 @@ elseif mainhandles.settings.FRETpairplots.sortpairs==7
     
 elseif mainhandles.settings.FRETpairplots.sortpairs==8
     set(FRETpairwindowHandles.Sort_maxAA, 'Checked','on')
+elseif mainhandles.settings.FRETpairplots.sortpairs==9
+    set(FRETpairwindowHandles.Sort_DeepFRETConf, 'Checked','on')
+elseif mainhandles.settings.FRETpairplots.sortpairs==10
+    set(FRETpairwindowHandles.Sort_BleachFrames, 'Checked','on')
 end
 
 if mainhandles.settings.bin.open
