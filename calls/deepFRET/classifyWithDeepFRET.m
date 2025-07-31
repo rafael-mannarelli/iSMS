@@ -53,12 +53,92 @@ if isempty(net2C) || isempty(net3C)
     end
 end
 
-progressbar('DeepFRET')
+useParallel = mainhandles.settings.performance.parallel && ~isempty(gcp('nocreate'));
 
 failedPairs = [];
-for k = 1:size(selectedPairs,1)
-    file = selectedPairs(k,1);
-    pair = selectedPairs(k,2);
+
+if useParallel
+    nPairs = size(selectedPairs,1);
+    parfor_progress(nPairs);
+    results = cell(nPairs,1);
+    parfor k = 1:nPairs
+        file = selectedPairs(k,1);
+        pair = selectedPairs(k,2);
+
+        intensities = cell(1,6);
+        intensities{1} = mainhandles.data(file).FRETpairs(pair).DDtrace(:);
+        intensities{2} = mainhandles.data(file).FRETpairs(pair).DDback(:);
+        intensities{3} = mainhandles.data(file).FRETpairs(pair).ADtrace(:);
+        intensities{4} = mainhandles.data(file).FRETpairs(pair).ADback(:);
+
+        if isfield(mainhandles.data(file).FRETpairs(pair),'AAtrace') && ...
+                ~isempty(mainhandles.data(file).FRETpairs(pair).AAtrace)
+            intensities{5} = mainhandles.data(file).FRETpairs(pair).AAtrace(:);
+            intensities{6} = mainhandles.data(file).FRETpairs(pair).AAback(:);
+        else
+            intensities{5} = NaN(size(intensities{1}));
+            intensities{6} = NaN(size(intensities{1}));
+        end
+
+        [~, Dleakage, Adirect] = getGamma(mainhandles,[file pair]);
+
+        FRETpair = mainhandles.data(file).FRETpairs(pair);
+        [dbleach, ableach] = detect_bleach_times(FRETpair, mainhandles.settings.bleachfinder, mainhandles.settings.excitation.alex);
+        if isempty(FRETpair.DbleachingTime)
+            FRETpair.DbleachingTime = dbleach;
+        end
+        if isempty(FRETpair.AbleachingTime)
+            FRETpair.AbleachingTime = ableach;
+        end
+
+        try
+            [cls, conf, prob] = classify_trace(intensities, Dleakage, Adirect, net2C, net3C, FRETpair);
+            probs.aggregated = prob(1);
+            probs.noisy = prob(2);
+            probs.scrambled = prob(3);
+            probs.static = prob(4);
+            probs.dynamic = prob(5);
+            probs.confidence = conf;
+            failed = false;
+        catch
+            cls = '';
+            conf = NaN;
+            probs = struct('aggregated',NaN,'noisy',NaN,'scrambled',NaN,'static',NaN,'dynamic',NaN,'confidence',NaN);
+            failed = true;
+        end
+
+        res.file = file;
+        res.pair = pair;
+        res.cls = cls;
+        res.conf = conf;
+        res.probs = probs;
+        res.FRETpair = FRETpair;
+        res.failed = failed;
+        results{k} = res;
+
+        parfor_progress;
+    end
+    parfor_progress(0);
+
+    for k = 1:nPairs
+        res = results{k};
+        file = res.file;
+        pair = res.pair;
+        mainhandles.data(file).FRETpairs(pair) = res.FRETpair;
+        mainhandles.data(file).FRETpairs(pair).DeepFRET_class = res.cls;
+        mainhandles.data(file).FRETpairs(pair).DeepFRET_confidence = res.conf;
+        mainhandles.data(file).FRETpairs(pair).DeepFRET_probs = res.probs;
+        if res.failed
+            failedPairs = [failedPairs; file pair];
+        end
+    end
+
+else
+    progressbar('DeepFRET')
+
+    for k = 1:size(selectedPairs,1)
+        file = selectedPairs(k,1);
+        pair = selectedPairs(k,2);
 
     intensities = cell(1,6);
     intensities{1} = mainhandles.data(file).FRETpairs(pair).DDtrace(:);
@@ -108,9 +188,11 @@ for k = 1:size(selectedPairs,1)
     end
 
     progressbar(k/size(selectedPairs,1))
+    end
+
+    progressbar(1)
 end
 
-progressbar(1)
 if ~isempty(failedPairs)
     warndlg(sprintf('DeepFRET classification failed for %d traces. See command window for details.', size(failedPairs,1)), 'DeepFRET');
 end
