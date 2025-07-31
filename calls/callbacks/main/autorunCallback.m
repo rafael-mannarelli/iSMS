@@ -50,9 +50,14 @@ mainhandles = myguidebox(mainhandles, 'Auto-run analysis', textstr, 'autorun',1,
 % Determine how many files to run analysis
 allFilesSetting = mainhandles.settings.autorun.AllFiles;
 if ischar(allFilesSetting)
-    allFilesSetting = strcmpi(allFilesSetting,'all files');
+    numericVal = str2double(allFilesSetting);
+    if ~isnan(numericVal)
+        allFilesSetting = numericVal;
+    else
+        allFilesSetting = strcmpi(strtrim(allFilesSetting),'all files');
+    end
 elseif islogical(allFilesSetting)
-    allFilesSetting = allFilesSetting~=0;
+    allFilesSetting = double(allFilesSetting~=0);
 end
 if allFilesSetting==1
     files = 1:length(mainhandles.data);
