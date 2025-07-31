@@ -107,14 +107,16 @@ if useParallel
             failed = true;
         end
 
-        res.file = file;
-        res.pair = pair;
-        res.cls = cls;
-        res.conf = conf;
-        res.probs = probs;
-        res.FRETpair = FRETpair;
-        res.failed = failed;
-        results{k} = res;
+        result = struct( ...
+            'file', file, ...
+            'pair', pair, ...
+            'cls', cls, ...
+            'conf', conf, ...
+            'probs', probs, ...
+            'FRETpair', FRETpair, ...
+            'failed', failed);
+
+        results{k} = result;
 
         parfor_progress;
     end
