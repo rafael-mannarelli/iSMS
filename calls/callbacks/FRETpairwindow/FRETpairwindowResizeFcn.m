@@ -136,28 +136,31 @@ end
 
 % Pair coordinates
 if ~isempty(mainhandles) && mainhandles.settings.excitation.alex
-    vpos = axspaceB+2*axH+axspaceV;
+    vpos_pc = axspaceB+2*axH+axspaceV;
 else
-    vpos = axspaceB+3*axH+2*axspaceV;
+    vpos_pc = axspaceB+3*axH+2*axspaceV;
 end
 
-vpos = vpos-2*textheight-verspace;
+vpos = vpos_pc-2*textheight-verspace;
 setpixelposition(fpHandles.PairCoordinatesTextbox, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.confidenceValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.aggregatedValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.staticValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.dynamicValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.noisyValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.scrambledValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
+
+% DeepFRET classification info underneath trace axes
+vpos = bottomspace+2*(textheight+verspace);
+tags = { 'text28','confidenceValueTextBox', ...
+    'aggregatedTextBox','aggregatedValueTextBox', ...
+    'staticTextBox','staticValueTextBox', ...
+    'dynamicTextBox','dynamicValueTextBox', ...
+    'noisyTextBox','noisyValueTextBox', ...
+    'scrambledTextBox','scrambledValueTextBox'};
+for k = 1:numel(tags)
+    h = findobj(fpHandles.figure1,'Tag',tags{k});
+    if ~isempty(h)
+        setpixelposition(h,[imX-4 vpos imW+8 textheight])
+        vpos = vpos+textheight+verspace;
+    end
+end
 setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
 
 % Images
