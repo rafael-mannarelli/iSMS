@@ -77,8 +77,18 @@ for k = 1:size(selectedPairs,1)
 
     [~, Dleakage, Adirect] = getGamma(mainhandles,[file pair]);
 
+    % Retrieve FRET pair data for bleaching detection
+    FRETpair = mainhandles.data(file).FRETpairs(pair);
+    [dbleach, ableach] = detect_bleach_times(FRETpair, mainhandles.settings.bleachfinder, mainhandles.settings.excitation.alex);
+    if isempty(FRETpair.DbleachingTime)
+        FRETpair.DbleachingTime = dbleach;
+    end
+    if isempty(FRETpair.AbleachingTime)
+        FRETpair.AbleachingTime = ableach;
+    end
+
     try
-        [cls, conf, prob] = classify_trace(intensities, Dleakage, Adirect, net2C, net3C);
+        [cls, conf, prob] = classify_trace(intensities, Dleakage, Adirect, net2C, net3C, FRETpair);
         mainhandles.data(file).FRETpairs(pair).DeepFRET_class = cls;
         mainhandles.data(file).FRETpairs(pair).DeepFRET_confidence = conf;
         probs.aggregated = prob(1);
@@ -159,11 +169,9 @@ function [p, confidence, bleachFrame] = seq_probabilities(yi, skip_threshold, mi
     T = size(yi, 2);  % number of frames
     bleachMask = true(1, T);  % initialize all frames as non-bleached
 
-    try
+    if nargin >= 4 && ~isempty(FRETpair)
         Didx = FRETpair.DbleachingTime;
         Aidx = FRETpair.AbleachingTime;
-
-        disp(Didx)
 
         if ~isempty(Didx) && ~isnan(Didx) && Didx <= T
             bleachMask(Didx:end) = false;
@@ -179,8 +187,7 @@ function [p, confidence, bleachFrame] = seq_probabilities(yi, skip_threshold, mi
         else
             bleachFrame = min(validBleachTimes);
         end
-
-    catch
+    else
         bleachFrame = find_bleach(yi(1,:), skip_threshold);
         bleachMask = yi(1,:) < skip_threshold;
     end
@@ -199,7 +206,7 @@ function [p, confidence, bleachFrame] = seq_probabilities(yi, skip_threshold, mi
 end
 
 
-function [traceClass, confidence, probs] = classify_trace(intensities, alpha, delta, net2C, net3C)
+function [traceClass, confidence, probs] = classify_trace(intensities, alpha, delta, net2C, net3C, FRETpair)
     [F_DA, I_DD, ~, I_AA] = correct_DA(intensities, alpha, delta);
     hasRed = ~any(isnan(I_AA));
     if hasRed
@@ -223,7 +230,11 @@ function [traceClass, confidence, probs] = classify_trace(intensities, alpha, de
 
     xi = sample_max_normalize(xi);
     yi = predict(model, xi);
-    [p, confidence, ~] = seq_probabilities(yi);
+    if nargin < 6
+        [p, confidence, ~] = seq_probabilities(yi);
+    else
+        [p, confidence, ~] = seq_probabilities(yi, 0.5, 1, FRETpair);
+    end
     [~, idx] = max(p);
 
     classes = {"bleached","aggregated","noisy","scrambled","static","dynamic"};
@@ -236,4 +247,55 @@ function [traceClass, confidence, probs] = classify_trace(intensities, alpha, de
     end
 
     probs = p;
+end
+
+function [Didx, Aidx] = detect_bleach_times(FRETpair, settings, alex)
+    allow = settings.allow;
+    Didx = [];
+    Aidx = [];
+
+    DD = FRETpair.DDtrace - FRETpair.DDback;
+    AD = FRETpair.ADtrace - FRETpair.ADback;
+    sumDA = medianSmoothFilter(DD + AD, 7);
+
+    if settings.findD
+        Didx = detect_trace_bleach(sumDA, settings.Dthreshold, allow);
+    end
+
+    if settings.findA
+        if alex && isfield(FRETpair,'AAtrace') && ~isempty(FRETpair.AAtrace)
+            AA = medianSmoothFilter(FRETpair.AAtrace - FRETpair.AAback, 7);
+            Aidx = detect_trace_bleach(AA, settings.Athreshold, allow);
+        else
+            ADcorr = medianSmoothFilter(AD, 7);
+            Aidx = detect_trace_bleach(ADcorr, settings.Dthreshold, allow);
+        end
+    end
+end
+
+function idx = detect_trace_bleach(I, threshold, allow)
+    idx = [];
+    L = length(I);
+    if L <= allow+1
+        return
+    end
+
+    if any(I(end-allow:end) < threshold)
+        run = 0;
+        for j = L:-1:1
+            if I(j) < threshold
+                idx = j;
+                run = 0;
+            else
+                run = run + 1;
+                if run > allow
+                    break
+                end
+            end
+        end
+
+        if ~isempty(idx) && (idx >= L-allow || idx < 2)
+            idx = [];
+        end
+    end
 end
