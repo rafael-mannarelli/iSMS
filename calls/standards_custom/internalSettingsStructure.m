@@ -233,7 +233,9 @@ settings.FRETpairplots = struct(...
     'contrastslider', 1,... % Default contrast in molecule images (max intensity is: max(image)*contrast)
     'frameSliders', 0,... % Show averaging interval sliders for molecule images (0/1)
     'linkFrameSliders', 0,... % Choice of whether the image sliders should be linked (0/1)
-    'sortpairs', 1,... % How to sort FRET pairs in the FRETpair window: 1) according to file. 2) According to group. 3) avg. FRET. 4) avg. S. 5) max DD+AD. 6) max DD. 7) max AD. 8) max AA. 9) DeepFRET confidence. 10) frames before bleach
+    'sortpairs', 1,... % How to sort FRET pairs in the FRETpair window: 1) according to file. 2) According to group. 3) avg. FRET. 4) avg. S. 5) max DD+AD. 6) max DD. 7) max AD. 8) max AA. 9) DeepFRET classification
+    'minDeepFRETConf', 0,... % Minimum DeepFRET confidence used when sorting
+    'minBleachFrames', 1,... % Minimum frames before bleaching used when sorting
     'avgFRET', 0,... % Show avg. FRET value in brackets after the FRET pair in the FRETpairwindow
     'filterchoice', 0);
 %% .SEplot.  E-S histogram plot window:

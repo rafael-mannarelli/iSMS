@@ -332,44 +332,29 @@ if strcmpi(choice,'Listed')
         selectedPairs = temp(:,2:3);
 
     elseif sortpairsChoice==9
-        % Sort according to DeepFRET confidence
+        % Sort according to DeepFRET confidence with threshold filters
 
         selectedPairs = getPairs(mainhandle,'all');
         if isempty(selectedPairs)
             return
         end
 
+        minConf = mainhandles.settings.FRETpairplots.minDeepFRETConf;
+        minFrames = mainhandles.settings.FRETpairplots.minBleachFrames;
+
         temp = zeros(size(selectedPairs,1),3);
-        temp(:,2:3) = selectedPairs;
+        keep = false(size(selectedPairs,1),1);
 
         for i = 1:size(selectedPairs,1)
             file = selectedPairs(i,1);
             pair = selectedPairs(i,2);
+
             conf = 0;
             if isfield(mainhandles.data(file).FRETpairs(pair),'DeepFRET_confidence') && ...
                     ~isempty(mainhandles.data(file).FRETpairs(pair).DeepFRET_confidence)
                 conf = mainhandles.data(file).FRETpairs(pair).DeepFRET_confidence;
             end
-            temp(i,1) = conf;
-        end
 
-        temp = flipud(sortrows(temp));
-        selectedPairs = temp(:,2:3);
-
-    elseif sortpairsChoice==10
-        % Sort according to frames until first bleaching event
-
-        selectedPairs = getPairs(mainhandle,'all');
-        if isempty(selectedPairs)
-            return
-        end
-
-        temp = zeros(size(selectedPairs,1),3);
-        temp(:,2:3) = selectedPairs;
-
-        for i = 1:size(selectedPairs,1)
-            file = selectedPairs(i,1);
-            pair = selectedPairs(i,2);
             Dtime = mainhandles.data(file).FRETpairs(pair).DbleachingTime;
             Atime = mainhandles.data(file).FRETpairs(pair).AbleachingTime;
             times = [Dtime Atime];
@@ -379,11 +364,21 @@ if strcmpi(choice,'Listed')
             else
                 frames = min(times);
             end
-            temp(i,1) = frames;
+
+            if conf >= minConf && frames >= minFrames
+                keep(i) = true;
+                temp(i,1) = conf;
+                temp(i,2:3) = selectedPairs(i,:);
+            end
         end
 
-        temp = flipud(sortrows(temp));
-        selectedPairs = temp(:,2:3);
+        temp = temp(keep,:);
+        if isempty(temp)
+            selectedPairs = zeros(0,2);
+        else
+            temp = flipud(sortrows(temp));
+            selectedPairs = temp(:,2:3);
+        end
         
     else
         % If only pairs in selected movie file is selected
