@@ -141,7 +141,8 @@ else
     vpos = axspaceB+3*axH+2*axspaceV;
 end
 
-vpos = vpos-2*textheight-verspace;
+numBoxes = 8; % pair coordinates + six DeepFRET lines
+vpos = vpos - numBoxes*textheight - (numBoxes-1)*verspace;
 setpixelposition(fpHandles.PairCoordinatesTextbox, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
