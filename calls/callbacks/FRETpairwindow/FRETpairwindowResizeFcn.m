@@ -141,26 +141,36 @@ else
     vpos = axspaceB+3*axH+2*axspaceV;
 end
 
-numBoxes = 9; % pair coordinates, DeepFRET confidence, and six DeepFRET lines
+deepFRET = isfield(fpHandles,'DeepFRETConfidenceTextbox');
+if deepFRET
+    numBoxes = 9; % pair coordinates, DeepFRET confidence, and six DeepFRET lines
+else
+    numBoxes = 2; % pair coordinates only
+end
 vpos = vpos - numBoxes*textheight - (numBoxes-1)*verspace;
+
 setpixelposition(fpHandles.PairCoordinatesTextbox, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.DeepFRETConfidenceTextbox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.confidenceValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.aggregatedValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.staticValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.dynamicValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.noisyValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.scrambledValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
+
+if deepFRET
+    setpixelposition(fpHandles.DeepFRETConfidenceTextbox,[imX-4 vpos imW+8 textheight])
+    vpos = vpos+textheight+verspace;
+    setpixelposition(fpHandles.confidenceValueTextBox,[imX-4 vpos imW+8 textheight])
+    vpos = vpos+textheight+verspace;
+    setpixelposition(fpHandles.aggregatedValueTextBox,[imX-4 vpos imW+8 textheight])
+    vpos = vpos+textheight+verspace;
+    setpixelposition(fpHandles.staticValueTextBox,[imX-4 vpos imW+8 textheight])
+    vpos = vpos+textheight+verspace;
+    setpixelposition(fpHandles.dynamicValueTextBox,[imX-4 vpos imW+8 textheight])
+    vpos = vpos+textheight+verspace;
+    setpixelposition(fpHandles.noisyValueTextBox,[imX-4 vpos imW+8 textheight])
+    vpos = vpos+textheight+verspace;
+    setpixelposition(fpHandles.scrambledValueTextBox,[imX-4 vpos imW+8 textheight])
+    vpos = vpos+textheight+verspace;
+end
+
 setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
 
 % Images
