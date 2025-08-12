@@ -81,6 +81,18 @@ setAllowAxesZoom(h,[handles.DDimageAxes handles.ADimageAxes handles.AAimageAxes]
 % GUI function handles
 handles.functionHandles.PairListbox_Callback = @PairListbox_Callback;
 
+% UI elements for DeepFRET classification probabilities
+tags = {'confidenceValueTextBox','classValueTextBox','aggregatedValueTextBox',...
+        'dynamicValueTextBox','noisyValueTextBox','scrambledValueTextBox','staticValueTextBox'};
+for k = 1:numel(tags)
+    htmp = findobj(handles.figure1,'Tag',tags{k});
+    if isempty(htmp)
+        htmp = uicontrol('Parent',handles.figure1,'Style','text',...
+            'String','-','HorizontalAlignment','left','Tag',tags{k});
+    end
+    handles.(tags{k}) = htmp;
+end
+
 % Set GUI properties depending on excitation scheme
 mainhandles = updateALEX(mainhandles,handles.figure1); % This may update
 
@@ -116,18 +128,6 @@ if isfield(handles,'ToolsMenu') && ishandle(handles.ToolsMenu)
         'Callback',@Tools_ClassifyFromList_Callback, 'Tag','Tools_ClassifyFromList');
     uimenu(handles.ToolsMenu, 'Label','Classify traces with DeepFRET...',...
         'Callback',@Tools_DeepFRET_Callback, 'Tag','Tools_DeepFRET');
-end
-
-% UI elements for DeepFRET classification probabilities
-tags = {'confidenceValueTextBox','aggregatedValueTextBox','dynamicValueTextBox',...
-        'noisyValueTextBox','scrambledValueTextBox','staticValueTextBox'};
-for k = 1:numel(tags)
-    htmp = findobj(handles.figure1,'Tag',tags{k});
-    if isempty(htmp)
-        htmp = uicontrol('Parent',handles.figure1,'Style','text',...
-            'String','-','HorizontalAlignment','left','Tag',tags{k});
-    end
-    handles.(tags{k}) = htmp;
 end
 
 % Save current properties of cursor and graphics handles
