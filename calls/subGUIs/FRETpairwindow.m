@@ -93,8 +93,12 @@ for k = 1:numel(tags)
     handles.(tags{k}) = htmp;
 end
 
+% Store handles before any resize/update calls
+guidata(handles.figure1,handles)
+
 % Set GUI properties depending on excitation scheme
 mainhandles = updateALEX(mainhandles,handles.figure1); % This may update
+handles = guidata(handles.figure1);
 
 % Additional sort menu item for DeepFRET-based sorting
 if isfield(handles,'SortMenu') && ishandle(handles.SortMenu)
