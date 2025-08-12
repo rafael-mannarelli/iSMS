@@ -119,6 +119,14 @@ if isfield(handles,'ToolsMenu') && ishandle(handles.ToolsMenu)
 end
 
 % UI elements for DeepFRET classification probabilities
+htmp = findobj(handles.figure1,'Tag','DeepFRETConfidenceTextbox');
+if isempty(htmp)
+    htmp = uicontrol('Parent',handles.figure1,'Style','text', ...
+        'String','DeepFRET confidence','HorizontalAlignment','left', ...
+        'Tag','DeepFRETConfidenceTextbox');
+end
+handles.DeepFRETConfidenceTextbox = htmp;
+
 tags = {'confidenceValueTextBox','aggregatedValueTextBox','dynamicValueTextBox',...
         'noisyValueTextBox','scrambledValueTextBox','staticValueTextBox'};
 for k = 1:numel(tags)
