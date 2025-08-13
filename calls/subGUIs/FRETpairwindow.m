@@ -130,6 +130,14 @@ for k = 1:numel(tags)
     handles.(tags{k}) = htmp;
 end
 
+% These UI elements previously displayed DeepFRET probabilities inside the
+% FRET traces window. The GUI now shows these percentages in a separate
+% window, so hide the original text boxes to avoid duplicate information.
+set([handles.confidenceValueTextBox, handles.aggregatedValueTextBox, ...
+     handles.dynamicValueTextBox, handles.noisyValueTextBox, ...
+     handles.scrambledValueTextBox, handles.staticValueTextBox], ...
+    'Visible','off');
+
 % Save current properties of cursor and graphics handles
 handles.functionHandles.cursorPointer = get(handles.figure1, 'Pointer');
 
@@ -1052,6 +1060,8 @@ end
 
 mainhandles = classifyWithDeepFRET(mainhandles.figure1, selectedPairs);
 plotDeepFRETConfidence(mainhandles.figure1);
+[handles, mainhandles] = updateFRETpairplots(mainhandles.figure1, handles.figure1, 'traces');
+guidata(handles.figure1, handles);
 
 function GroupingsMenu_Callback(hObject, ~, handles) %% The Groups menu
 handles = turnoffFRETpairwindowtoggles(handles); % Turn of integration ROIs

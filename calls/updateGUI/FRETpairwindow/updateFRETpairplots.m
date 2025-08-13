@@ -419,10 +419,11 @@ Axy = mainhandles.data(file).FRETpairs(pair).Axy; % Position of the acceptor wit
 Exy = (Dxy+Axy)/2;
 set(FRETpairwindowHandles.paircoordinates,'String',sprintf('(%0.1f, %0.1f)',Exy(1),Exy(2)))
 
-% Update DeepFRET probabilities
+% Update DeepFRET probabilities in a separate results window
 if isfield(mainhandles.data(file).FRETpairs(pair),'DeepFRET_probs') && ...
         isstruct(mainhandles.data(file).FRETpairs(pair).DeepFRET_probs)
     probs = mainhandles.data(file).FRETpairs(pair).DeepFRET_probs;
+    showDeepFRETResults(probs);
     set(FRETpairwindowHandles.confidenceValueTextBox,'String',sprintf('%0.1f %%',100*probs.confidence));
     set(FRETpairwindowHandles.aggregatedValueTextBox,'String',sprintf('%0.1f %%',100*probs.aggregated));
     set(FRETpairwindowHandles.dynamicValueTextBox,'String',sprintf('%0.1f %%',100*probs.dynamic));
@@ -430,6 +431,7 @@ if isfield(mainhandles.data(file).FRETpairs(pair),'DeepFRET_probs') && ...
     set(FRETpairwindowHandles.scrambledValueTextBox,'String',sprintf('%0.1f %%',100*probs.scrambled));
     set(FRETpairwindowHandles.staticValueTextBox,'String',sprintf('%0.1f %%',100*probs.static));
 else
+    showDeepFRETResults([]);
     set(FRETpairwindowHandles.confidenceValueTextBox,'String','-');
     set(FRETpairwindowHandles.aggregatedValueTextBox,'String','-');
     set(FRETpairwindowHandles.dynamicValueTextBox,'String','-');
