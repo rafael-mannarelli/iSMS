@@ -30,12 +30,6 @@ end
 % Get mainhandles
 mainhandles = getmainhandles(fpHandles);
 
-% Ensure DeepFRET UI elements exist before adjusting positions
-required = {'text28','aggregatedValueTextBox','dynamicValueTextBox',...
-            'noisyValueTextBox','scrambledValueTextBox','staticValueTextBox'};
-if any(~cellfun(@(f) isfield(fpHandles,f) && ishandle(fpHandles.(f)), required))
-    return;
-end
 
 %% Dimensions
 
@@ -152,18 +146,12 @@ vpos = vpos-2*textheight-verspace;
 setpixelposition(fpHandles.PairCoordinatesTextbox, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.text28,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.aggregatedValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.staticValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.dynamicValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.noisyValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.scrambledValueTextBox,[imX-4 vpos imW+8 textheight])
+vpos = vpos+textheight+verspace; % confidenceValueTextBox
+vpos = vpos+textheight+verspace; % aggregatedValueTextBox
+vpos = vpos+textheight+verspace; % staticValueTextBox
+vpos = vpos+textheight+verspace; % dynamicValueTextBox
+vpos = vpos+textheight+verspace; % noisyValueTextBox
+vpos = vpos+textheight+verspace; % scrambledValueTextBox
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
 
