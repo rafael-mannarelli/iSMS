@@ -85,8 +85,7 @@ if (isempty(mainhandles.data)) || (isempty(selectedPairs)) || (size(selectedPair
     cla(DDtraceAxes),  cla(ADtraceAxes),  cla(AAtraceAxes),  cla(StraceAxes),
     cla(PRtraceAxes),  cla(DDimageAxes),  cla(ADimageAxes),  cla(AAimageAxes)
     set(FRETpairwindowHandles.paircoordinates,'String','(-, -)')
-    set(FRETpairwindowHandles.classValueTextBox,'String','-')
-    set(FRETpairwindowHandles.confidenceValueTextBox,'String','-')
+    set(FRETpairwindowHandles.text28,'String','-')
     set(FRETpairwindowHandles.aggregatedValueTextBox,'String','-')
     set(FRETpairwindowHandles.dynamicValueTextBox,'String','-')
     set(FRETpairwindowHandles.noisyValueTextBox,'String','-')
@@ -422,19 +421,16 @@ set(FRETpairwindowHandles.paircoordinates,'String',sprintf('(%0.1f, %0.1f)',Exy(
 
 % Update DeepFRET probabilities
 if isfield(mainhandles.data(file).FRETpairs(pair),'DeepFRET_probs') && ...
-        isstruct(mainhandles.data(file).FRETpairs(pair).DeepFRET_probs) && ...
-        isfield(mainhandles.data(file).FRETpairs(pair),'DeepFRET_class')
+        isstruct(mainhandles.data(file).FRETpairs(pair).DeepFRET_probs)
     probs = mainhandles.data(file).FRETpairs(pair).DeepFRET_probs;
-    set(FRETpairwindowHandles.classValueTextBox,'String',mainhandles.data(file).FRETpairs(pair).DeepFRET_class);
-    set(FRETpairwindowHandles.confidenceValueTextBox,'String',sprintf('%0.1f %%',100*probs.confidence));
+    set(FRETpairwindowHandles.text28,'String',sprintf('%0.1f %%',100*probs.confidence));
     set(FRETpairwindowHandles.aggregatedValueTextBox,'String',sprintf('%0.1f %%',100*probs.aggregated));
     set(FRETpairwindowHandles.dynamicValueTextBox,'String',sprintf('%0.1f %%',100*probs.dynamic));
     set(FRETpairwindowHandles.noisyValueTextBox,'String',sprintf('%0.1f %%',100*probs.noisy));
     set(FRETpairwindowHandles.scrambledValueTextBox,'String',sprintf('%0.1f %%',100*probs.scrambled));
     set(FRETpairwindowHandles.staticValueTextBox,'String',sprintf('%0.1f %%',100*probs.static));
 else
-    set(FRETpairwindowHandles.classValueTextBox,'String','-');
-    set(FRETpairwindowHandles.confidenceValueTextBox,'String','-');
+    set(FRETpairwindowHandles.text28,'String','-');
     set(FRETpairwindowHandles.aggregatedValueTextBox,'String','-');
     set(FRETpairwindowHandles.dynamicValueTextBox,'String','-');
     set(FRETpairwindowHandles.noisyValueTextBox,'String','-');

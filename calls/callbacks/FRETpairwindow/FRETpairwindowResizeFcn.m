@@ -30,6 +30,13 @@ end
 % Get mainhandles
 mainhandles = getmainhandles(fpHandles);
 
+% Ensure DeepFRET UI elements exist before adjusting positions
+required = {'text28','aggregatedValueTextBox','dynamicValueTextBox',...
+            'noisyValueTextBox','scrambledValueTextBox','staticValueTextBox'};
+if any(~cellfun(@(f) isfield(fpHandles,f) && ishandle(fpHandles.(f)), required))
+    return;
+end
+
 %% Dimensions
 
 GUIdimensions
@@ -146,9 +153,7 @@ setpixelposition(fpHandles.PairCoordinatesTextbox, [imX-4 vpos imW+8 textheight]
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.classValueTextBox,[imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.confidenceValueTextBox,[imX-4 vpos imW+8 textheight])
+setpixelposition(fpHandles.text28,[imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.aggregatedValueTextBox,[imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
