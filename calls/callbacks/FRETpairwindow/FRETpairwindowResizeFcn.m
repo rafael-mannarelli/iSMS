@@ -38,7 +38,6 @@ leftspace = 8;
 rightspace = 10;
 
 textW1 = 42;
-textW2 = 38;
 checkH = 23;
 
 axspaceV = 12;
@@ -66,8 +65,7 @@ imX = axX+axW+axspaceR;
 buttonH = 27;
 buttonW = listW-14;
 
-editW = imW-textW2-horspace;
-editX = imX+textW2+horspace;
+editW = imW;
 
 if listW<1
     return
@@ -120,18 +118,24 @@ if editW>=1
     setpixelposition(fpHandles.molspecCheckbox, [imX vpos imW+rightspace checkH])
     
     vpos = axspaceB;
-    setpixelposition(fpHandles.GammaTextbox, [imX vpos textW2 textheight])
-    setpixelposition(fpHandles.GammaEditbox, [imX+textW2+horspace vpos editW editheight])
-    
+    set(fpHandles.GammaTextbox,'HorizontalAlignment','left')
+    setpixelposition(fpHandles.GammaTextbox, [imX vpos imW textheight])
+    vpos = vpos+textheight+verspace;
+    setpixelposition(fpHandles.GammaEditbox, [imX vpos editW editheight])
+
     if ~isempty(mainhandles) && mainhandles.settings.excitation.alex
         vpos = vpos+editheight+verspace;
-        setpixelposition(fpHandles.AdirectTextbox, [imX vpos textW2 textheight])
-        setpixelposition(fpHandles.AdirectEditbox, [imX+textW2+horspace vpos editW editheight])
+        set(fpHandles.AdirectTextbox,'HorizontalAlignment','left')
+        setpixelposition(fpHandles.AdirectTextbox, [imX vpos imW textheight])
+        vpos = vpos+textheight+verspace;
+        setpixelposition(fpHandles.AdirectEditbox, [imX vpos editW editheight])
     end
-    
+
     vpos = vpos+editheight+verspace;
-    setpixelposition(fpHandles.DleakTextbox, [imX vpos textW2 textheight])
-    setpixelposition(fpHandles.DleakEditbox, [imX+textW2+horspace vpos editW editheight])
+    set(fpHandles.DleakTextbox,'HorizontalAlignment','left')
+    setpixelposition(fpHandles.DleakTextbox, [imX vpos imW textheight])
+    vpos = vpos+textheight+verspace;
+    setpixelposition(fpHandles.DleakEditbox, [imX vpos editW editheight])
 end
 
 % Pair coordinates
