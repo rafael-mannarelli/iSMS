@@ -118,7 +118,7 @@ setpixelposition(fpHandles.DDtraceAxes,[axX vpos axW axH])
 if editW>=1
     vpos = bottomspace;%axspaceB-vergap-checkH;
     setpixelposition(fpHandles.molspecCheckbox, [imX vpos imW+rightspace checkH])
-    
+
     vpos = axspaceB;
     setpixelposition(fpHandles.GammaTextbox, [imX vpos textW2 textheight])
     setpixelposition(fpHandles.GammaEditbox, [imX+textW2+horspace vpos editW editheight])
@@ -132,6 +132,10 @@ if editW>=1
     vpos = vpos+editheight+verspace;
     setpixelposition(fpHandles.DleakTextbox, [imX vpos textW2 textheight])
     setpixelposition(fpHandles.DleakEditbox, [imX+textW2+horspace vpos editW editheight])
+
+    % Place section label above the correction factor values
+    vpos = vpos+editheight+verspace;
+    setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
 end
 
 % Pair coordinates
@@ -145,8 +149,6 @@ vpos = vpos-2*textheight-verspace;
 setpixelposition(fpHandles.PairCoordinatesTextbox, [imX-4 vpos imW+8 textheight])
 vpos = vpos+textheight+verspace;
 setpixelposition(fpHandles.paircoordinates, [imX-4 vpos imW+8 textheight])
-vpos = vpos+textheight+verspace;
-setpixelposition(fpHandles.CorrectionFactorsTextbox, [imX-rightspace vpos imW+2*rightspace textheight])
 
 % Images
 vpos = axspaceB+2*axH+2*axspaceV;
