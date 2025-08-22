@@ -190,7 +190,7 @@ end
 %% Save default data structure format to file
 % (for software version compatibility)
 
-try 
+if ~isempty(mainhandles.data)
     % Delete file specific data
     dataTemplate = mainhandles.data(end);
     dataTemplate.back = [];
@@ -219,14 +219,8 @@ try
     dataTemplate.donors(:) = [];
     dataTemplate.rawmovieLength = [];
     dataTemplate.time = [];
-end
-
-try
-    % Save file with settings structure
     dataTemplateFile = fullfile(mainhandles.settingsdir,'data.template');
     save(dataTemplateFile,'dataTemplate');
-catch err
-    fprintf('Error when trying to save default data template:\n\n %s',err.message)
 end
 
 %% Update GUI and finish
